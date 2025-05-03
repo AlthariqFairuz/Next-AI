@@ -3,7 +3,6 @@
 import { useState, useRef, useEffect } from 'react';
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { toast } from "sonner";
 import openRouterService from '@/services/openRouter';
 import { supabase } from '@/lib/supabase';
 import { Send, Bot, User, CornerDownLeft } from 'lucide-react';
@@ -43,15 +42,12 @@ export default function ChatInterface() {
     setIsProcessing(true);
     
     try {
-      // Get user session
       const { data: { user } } = await supabase.auth.getUser();
       
       if (!user) {
         throw new Error('User not authenticated');
       }
       
-      // Skip the document retrieval and use direct completion
-      // Call the model API directly
       const response = await openRouterService.chat.completions.create({
         model: "deepseek/deepseek-r1:free",
         messages: [

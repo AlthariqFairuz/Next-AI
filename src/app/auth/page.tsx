@@ -15,18 +15,18 @@ const AuthPage = () => {
   const [mounted, setMounted] = useState(false);
   const router = useRouter();
 
-//   useEffect(() => {
-//     const checkAuth = async () => {
-//       const { data } = await supabase.auth.getSession();
-//       if (data.session) {
-//         router.push('/');
-//       }
-//     };
+  useEffect(() => {
+    const checkAuth = async () => {
+      const { data } = await supabase.auth.getSession();
+      if (data.session) {
+        router.push('/');
+      }
+    };
     
-//     if (mounted) {
-//       checkAuth();
-//     }
-//   }, [mounted, router]);
+    if (mounted) {
+      checkAuth();
+    }
+  }, [mounted, router]);
 
   // Prevent hydration issues
   useEffect(() => {
@@ -49,8 +49,8 @@ const AuthPage = () => {
       // Redirect to home page after successful login
       router.push('/');
       
-    } catch (error: any) {
-      toast.error(error.message || 'Failed to log in');
+    } catch (error: unknown) {
+      toast.error( error instanceof Error ? error.message : 'Failed to log in');
     } finally {
       setLoading(false);
     }
@@ -77,8 +77,8 @@ const AuthPage = () => {
       setActiveTab('login');
       setPassword(''); 
       
-    } catch (error: any) {
-      toast.error(error.message || 'Failed to create account');
+    } catch (error: unknown) {
+      toast.error( error instanceof Error ? error.message : 'Failed to log in');
     } finally {
       setLoading(false);
     }
