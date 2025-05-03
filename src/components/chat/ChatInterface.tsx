@@ -53,7 +53,7 @@ export default function ChatInterface() {
       // Skip the document retrieval and use direct completion
       // Call the model API directly
       const response = await openRouterService.chat.completions.create({
-        model: "deepseek/deepseek-prover-v2:free",
+        model: "deepseek/deepseek-r1:free",
         messages: [
           { role: "system", content: "You are a helpful assistant." },
           { role: "user", content: userMessage.content }
