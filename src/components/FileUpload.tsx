@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useRef, useEffect } from 'react';
-import { supabase } from '@/lib/supabase';
+import { createBrowserClient } from '@supabase/ssr';
 import { Card, CardHeader, CardContent, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { toast } from "sonner";
@@ -19,6 +19,12 @@ export default function FileUpload({ userId, onUpload }: FileUploadProps) {
   const [dragActive, setDragActive] = useState(false);
   const [success, setSuccess] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
+  
+  // Use createBrowserClient to ensure we have the latest auth cookies
+  const supabase = createBrowserClient(
+    process.env.NEXT_PUBLIC_SUPABASE_URL!,
+    process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
+  );
   
   // Reset success state after animation completes
   useEffect(() => {
@@ -42,6 +48,11 @@ export default function FileUpload({ userId, onUpload }: FileUploadProps) {
   }
   
   async function processFile(file: File) {
+    if (!userId) {
+      toast.error('User ID is missing. Please log in again.');
+      return;
+    }
+    
     setFileName(file.name);
     setUploading(true);
     setProgress(10);
@@ -54,11 +65,15 @@ export default function FileUpload({ userId, onUpload }: FileUploadProps) {
       
       setProgress(20);
       
+      // Upload the file directly
       const { error: uploadError } = await supabase.storage
         .from('pdfs')
         .upload(filePath, file);
         
-      if (uploadError) throw uploadError;
+      if (uploadError) {
+        console.error('Storage upload error:', uploadError);
+        throw new Error(`Upload failed: ${uploadError.message}`);
+      }
       
       // 2. Get public URL
       const { data: { publicUrl } } = supabase.storage
@@ -87,17 +102,6 @@ export default function FileUpload({ userId, onUpload }: FileUploadProps) {
       
       setProgress(80);
       
-      // 4. Add document to database
-      const { error: dbError } = await supabase
-        .from('documents')
-        .insert({
-          user_id: userId,
-          name: file.name.replace(/\.[^/.]+$/, ""),
-          url: publicUrl,
-          created_at: new Date().toISOString(),
-        });
-        
-      if (dbError) throw dbError;
       
       setProgress(100);
       toast.success('Document uploaded successfully!');

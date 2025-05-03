@@ -37,15 +37,18 @@ export async function POST(request: Request) {
     // Store text chunks in vector database
     await storeDocument(documentId, textChunks);
     
-    // Insert document metadata to Supabase
+    // Create Supabase admin client with service role key (no auth required)
     const supabaseAdmin = createClient(
       process.env.NEXT_PUBLIC_SUPABASE_URL!,
       process.env.NEXT_PUBLIC_SUPABASE_ROLE_KEY!, 
       { auth: { persistSession: false } }
     );
     
-    // Then use this client for database operations
-    const { error } = await supabaseAdmin
+    // Generate file URL - grab this from storage
+    const fileUrl = `${process.env.NEXT_PUBLIC_SUPABASE_URL}/storage/v1/object/public/pdfs/${userId}/${file.name}`;
+    
+    // 1. Insert document metadata
+    const { error: metadataError } = await supabaseAdmin
       .from("document_metadata")
       .insert({
         id: documentId,
@@ -54,8 +57,26 @@ export async function POST(request: Request) {
         chunk_count: textChunks.length,
       });
       
-    if (error) {
-      throw error;
+    if (metadataError) {
+      console.error("Metadata insertion error:", metadataError);
+      throw new Error(`Failed to insert metadata: ${metadataError.message}`);
+    }
+    
+    // 2. Insert into documents table
+    const { error: docError } = await supabaseAdmin
+      .from("documents")
+      .insert({
+        id: documentId,
+        user_id: userId,
+        name: documentName,
+        url: fileUrl,
+        created_at: new Date().toISOString(),
+        updated_at: new Date().toISOString()
+      });
+      
+    if (docError) {
+      console.error("Document insertion error:", docError);
+      throw new Error(`Failed to insert document: ${docError.message}`);
     }
     
     return NextResponse.json({
@@ -72,7 +93,3 @@ export async function POST(request: Request) {
     );
   }
 }
-
-// function createClient(arg0: string, arg1: string, arg2: { auth: { persistSession: boolean; }; }) {
-//   throw new Error("Function not implemented.");
-// }
