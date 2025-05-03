@@ -42,6 +42,67 @@ export default function ChatInterface() {
     setMessages((prev) => [...prev, userMessage]);
     setInput('');
     setIsProcessing(true);
+    
+    try {
+      // Get user session
+      const { data: { user } } = await supabase.auth.getUser();
+      
+      if (!user) {
+        throw new Error('User not authenticated');
+      }
+      
+      // Retrieve relevant chunks from vector store
+      const contextChunks = await queryVectorStore(userMessage.content, user.id, 5);
+      
+      // Format context for the model
+      const context = contextChunks.map(chunk => chunk.content).join('\n\n');
+      
+      // Prepare prompt with context and user query
+      const prompt = `
+        You are a helpful assistant answering questions based on provided documents.
+        
+        CONTEXT:
+        ${context}
+        
+        USER QUESTION:
+        ${userMessage.content}
+        
+        Please answer the question based only on the provided context. If you can't answer from the context, simply state that the information isn't available in the provided documents.
+      `;
+      
+      // Call the model API
+      const response = await openRouterService.chat.completions.create({
+        model: "deepseek/deepseek-lm-67b",
+        messages: [
+          { role: "system", content: "You are a helpful RAG assistant." },
+          { role: "user", content: prompt }
+        ],
+        temperature: 0.2,
+        max_tokens: 1000,
+      });
+      
+      const assistantMessage = {
+        id: Date.now().toString(),
+        role: 'assistant' as const,
+        content: response.choices[0]?.message.content || 'Sorry, I could not process your request.',
+        timestamp: new Date(),
+      };
+      
+      setMessages((prev) => [...prev, assistantMessage]);
+    } catch (error) {
+      console.error('Error processing request:', error);
+      
+      const errorMessage = {
+        id: Date.now().toString(),
+        role: 'assistant' as const,
+        content: 'Sorry, there was an error processing your request. Please try again.',
+        timestamp: new Date(),
+      };
+      
+      setMessages((prev) => [...prev, errorMessage]);
+    } finally {
+      setIsProcessing(false);
+    }
   };
   
   return (

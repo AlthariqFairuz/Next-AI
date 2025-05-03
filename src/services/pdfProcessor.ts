@@ -1,40 +1,27 @@
-import { env } from 'process';
 import { supabase } from '@/lib/supabase';
-import { PGVectorStore } from "@langchain/community/vectorstores/pgvector";
-import { CohereEmbeddings } from "@langchain/cohere";
-
-// Initialize Cohere Embeddings
-const embeddings = new CohereEmbeddings({
-  apiKey: env.COHERE_API_KEY,
-  model: "embed-multilingual-v3.0",
-});
-
-// Initialize pgvector connection (connection params should be set in environment variables)
-const connectionConfig = {
-  postgresConnectionOptions: {
-    connectionString: env.DATABASE_URL || '',
-  },
-  tableName: 'document_embeddings',
-  columns: {
-    idColumnName: 'id',
-    vectorColumnName: 'embedding',
-    contentColumnName: 'content',
-    metadataColumnName: 'metadata',
-  },
-};
+import { PDFExtract } from 'pdf.js-extract';
+import { getVectorStore } from './vectorstore';
 
 // Extract text from PDF
 export const extractTextFromPdf = async (pdfUrl: string): Promise<string> => {
   try {
     const response = await fetch(pdfUrl);
     const pdfBuffer = await response.arrayBuffer();
+    const pdfExtract = new PDFExtract();
     
-    // Using PDF.js to extract text (would need to be loaded in client components)
-    // For server components, you might want to use a PDF parsing library or API
-    // This is a simplified example - in production, you'd need robust PDF parsing
+    // const options = {};
+    const data = await pdfExtract.extractBuffer(Buffer.from(pdfBuffer));
     
-    // Simulating text extraction result
-    return "Extracted text from PDF would be here";
+    // Concatenate text from all pages
+    let extractedText = '';
+    data.pages.forEach(page => {
+      page.content.forEach(item => {
+        extractedText += item.str + ' ';
+      });
+      extractedText += '\n\n';
+    });
+    
+    return extractedText;
   } catch (error) {
     console.error('Error extracting text from PDF:', error);
     throw new Error('Failed to extract text from PDF');
@@ -57,14 +44,12 @@ export const processPdf = async (
   documentName: string
 ): Promise<void> => {
   try {
-    // Extract text from PDF
+
     const extractedText = await extractTextFromPdf(pdfUrl);
     
-    // Split text into chunks
     const textChunks = splitTextIntoChunks(extractedText);
     
-    // Initialize vector store
-    const vectorStore = await PGVectorStore.initialize(embeddings, connectionConfig);
+    const vectorStore = await getVectorStore();
     
     // Embed and store each chunk
     for (let i = 0; i < textChunks.length; i++) {
@@ -104,11 +89,11 @@ export const queryVectorStore = async (
 ): Promise<Array<{content: string, metadata: any}>> => {
   try {
     // Initialize vector store
-    const vectorStore = await PGVectorStore.initialize(embeddings, connectionConfig);
+    const vectorStore = await getVectorStore();
     
     // Generate embedding for the question
     const results = await vectorStore.similaritySearch(question, topK, {
-      userId, // Filter by user ID
+      filter: { userId: userId },  // Filter by user ID
     });
     
     return results.map(doc => ({
