@@ -5,7 +5,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Card, CardHeader, CardContent, CardFooter, CardTitle } from "@/components/ui/card";
 import { toast } from "sonner";
-import { Send, FileText } from "lucide-react";
+import { Send, FileText, Bot, User } from "lucide-react";
 
 export default function ChatInterface({ userId }: { userId: string }) {
   const [messages, setMessages] = useState<{
@@ -72,19 +72,23 @@ export default function ChatInterface({ userId }: { userId: string }) {
   }
   
   return (
-    <Card className="flex flex-col h-[calc(100vh-8rem)]">
-      <CardHeader className="px-6 py-3 border-b">
-        <CardTitle className="text-lg">Chat with Your Documents</CardTitle>
+    <Card className="bg-card text-card-foreground rounded-lg border shadow-sm h-[calc(100vh-8rem)] md:h-[calc(100vh-10rem)] flex flex-col">
+      <CardHeader className="px-4 py-3 border-b flex flex-row items-center space-y-0">
+        <CardTitle className="text-base font-medium">Chat with Your Documents</CardTitle>
       </CardHeader>
       
       <CardContent className="flex-1 overflow-y-auto p-4 space-y-4">
         {messages.length === 0 ? (
-          <div className="flex flex-col items-center justify-center h-full text-center text-muted-foreground space-y-3">
-            <FileText className="h-12 w-12 text-muted-foreground/50" />
-            <p className="text-lg font-medium">Ask questions about your documents</p>
-            <p className="text-sm max-w-md">
-              Upload PDFs from the left panel, then start asking questions here.
-            </p>
+          <div className="h-full flex flex-col items-center justify-center text-center">
+            <div className="mx-auto flex max-w-[420px] flex-col items-center justify-center text-center">
+              <div className="flex h-12 w-12 items-center justify-center rounded-full bg-muted mb-4">
+                <Bot className="h-6 w-6" />
+              </div>
+              <h3 className="mt-4 text-lg font-medium">Ask about your documents</h3>
+              <p className="mb-4 mt-2 text-sm text-muted-foreground max-w-sm">
+                Upload PDFs from the sidebar, then ask questions to get instant, AI-powered answers based on your content.
+              </p>
+            </div>
           </div>
         ) : (
           messages.map((msg, index) => (
@@ -93,24 +97,37 @@ export default function ChatInterface({ userId }: { userId: string }) {
               className={`flex ${msg.role === 'user' ? 'justify-end' : 'justify-start'}`}
             >
               <div
-                className={`max-w-[80%] rounded-lg p-3 ${
+                className={`flex max-w-[85%] md:max-w-[75%] rounded-lg px-3 py-2 ${
                   msg.role === 'user'
                     ? 'bg-primary text-primary-foreground'
                     : 'bg-muted text-foreground'
                 }`}
               >
-                <div className="whitespace-pre-wrap">{msg.content}</div>
-                
-                {msg.sources && msg.sources.length > 0 && (
-                  <div className="mt-2 text-xs opacity-70 border-t pt-2">
-                    <div className="font-medium">Sources:</div>
-                    <ul className="list-disc pl-4 mt-1 space-y-1">
-                      {msg.sources.map((source, idx) => (
-                        <li key={idx}>{source}</li>
-                      ))}
-                    </ul>
+                <div className="mr-2 flex h-6 w-6 shrink-0 items-center justify-center rounded-full bg-background/30">
+                  {msg.role === 'user' ? (
+                    <User className="h-3 w-3" />
+                  ) : (
+                    <Bot className="h-3 w-3" />
+                  )}
+                </div>
+                <div className="flex-1">
+                  <div className="prose-sm whitespace-pre-wrap">
+                    {msg.content}
                   </div>
-                )}
+                  
+                  {msg.sources && msg.sources.length > 0 && (
+                    <div className="mt-2 text-xs border-t border-border/40 pt-2 opacity-80">
+                      <div className="font-medium">Sources:</div>
+                      <div className="flex flex-wrap gap-1 mt-1">
+                        {msg.sources.map((source, idx) => (
+                          <span key={idx} className="inline-flex items-center rounded-full bg-secondary px-2 py-0.5 text-xs">
+                            {source}
+                          </span>
+                        ))}
+                      </div>
+                    </div>
+                  )}
+                </div>
               </div>
             </div>
           ))
@@ -131,8 +148,10 @@ export default function ChatInterface({ userId }: { userId: string }) {
             type="submit"
             disabled={isLoading || !input.trim() || !userId}
             size="icon"
+            className="shrink-0"
           >
             <Send className="h-4 w-4" />
+            <span className="sr-only">Send</span>
           </Button>
         </form>
       </CardFooter>

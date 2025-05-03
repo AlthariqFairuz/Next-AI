@@ -1,20 +1,11 @@
 "use client";
 
-import { useEffect } from "react";
-import { useRouter } from "next/navigation";
 import Link from "next/link";
 import { Button } from "@/components/ui/button";
 import { useAuth } from "@/context/AuthContext";
 
 export default function Home() {
   const { user, isLoading } = useAuth();
-  const router = useRouter();
-
-  useEffect(() => {
-    if (!isLoading && user) {
-      router.push("/dashboard");
-    }
-  }, [user, isLoading, router]);
 
   return (
     <div className="flex min-h-screen flex-col bg-gray-50">
@@ -23,12 +14,20 @@ export default function Home() {
           <div className="flex justify-between items-center">
             <h1 className="text-2xl font-bold text-gray-900">DeepSeek RAG</h1>
             <div className="flex items-center gap-4">
-              <Link href="/login">
-                <Button variant="outline">Login</Button>
-              </Link>
-              <Link href="/register">
-                <Button>Register</Button>
-              </Link>
+              {!user ? (
+                <>
+                  <Link href="/login">
+                    <Button variant="outline">Login</Button>
+                  </Link>
+                  <Link href="/register">
+                    <Button>Register</Button>
+                  </Link>
+                </>
+              ) : (
+                <Link href="/dashboard">
+                  <Button>Dashboard</Button>
+                </Link>
+              )}
             </div>
           </div>
         </div>
@@ -45,12 +44,20 @@ export default function Home() {
                 Upload your PDFs and get instant answers to your questions using our RAG (Retrieval Augmented Generation) system powered by DeepSeek AI.
               </p>
               <div className="mt-10 flex items-center justify-center gap-x-6">
-                <Link href="/register">
-                  <Button size="lg">Get started</Button>
-                </Link>
-                <Link href="/login">
-                  <Button variant="outline" size="lg">Login</Button>
-                </Link>
+                {!user ? (
+                  <>
+                    <Link href="/register">
+                      <Button size="lg">Get started</Button>
+                    </Link>
+                    <Link href="/login">
+                      <Button variant="outline" size="lg">Login</Button>
+                    </Link>
+                  </>
+                ) : (
+                  <Link href="/dashboard">
+                    <Button size="lg">Go to Dashboard</Button>
+                  </Link>
+                )}
               </div>
             </div>
           </div>

@@ -1,11 +1,11 @@
 "use client";
 
-import { useState, useRef } from 'react';
+import { useState, useRef, useEffect } from 'react';
 import { supabase } from '@/lib/supabase';
 import { Card, CardHeader, CardContent, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { toast } from "sonner";
-import { Upload, File, Loader2 } from "lucide-react";
+import { Upload, Loader2, FileIcon, CheckCircle2 } from "lucide-react";
 
 interface FileUploadProps {
   userId: string;
@@ -16,7 +16,20 @@ export default function FileUpload({ userId, onUpload }: FileUploadProps) {
   const [uploading, setUploading] = useState(false);
   const [fileName, setFileName] = useState('');
   const [progress, setProgress] = useState(0);
+  const [dragActive, setDragActive] = useState(false);
+  const [success, setSuccess] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
+  
+  // Reset success state after animation completes
+  useEffect(() => {
+    let timer: NodeJS.Timeout;
+    if (success) {
+      timer = setTimeout(() => {
+        setSuccess(false);
+      }, 3000);
+    }
+    return () => clearTimeout(timer);
+  }, [success]);
   
   async function handleUpload(e: React.ChangeEvent<HTMLInputElement>) {
     const file = e.target.files?.[0];
@@ -25,6 +38,10 @@ export default function FileUpload({ userId, onUpload }: FileUploadProps) {
       return;
     }
     
+    processFile(file);
+  }
+  
+  async function processFile(file: File) {
     setFileName(file.name);
     setUploading(true);
     setProgress(10);
@@ -84,6 +101,7 @@ export default function FileUpload({ userId, onUpload }: FileUploadProps) {
       
       setProgress(100);
       toast.success('Document uploaded successfully!');
+      setSuccess(true);
       
       if (onUpload) onUpload();
       
@@ -104,17 +122,50 @@ export default function FileUpload({ userId, onUpload }: FileUploadProps) {
     fileInputRef.current?.click();
   }
   
+  // Drag and drop handlers
+  function handleDrag(e: React.DragEvent) {
+    e.preventDefault();
+    e.stopPropagation();
+    
+    if (e.type === 'dragenter' || e.type === 'dragover') {
+      setDragActive(true);
+    } else if (e.type === 'dragleave') {
+      setDragActive(false);
+    }
+  }
+  
+  function handleDrop(e: React.DragEvent) {
+    e.preventDefault();
+    e.stopPropagation();
+    setDragActive(false);
+    
+    if (e.dataTransfer.files && e.dataTransfer.files[0]) {
+      const file = e.dataTransfer.files[0];
+      if (file.type !== 'application/pdf') {
+        toast.error('Please select a PDF file');
+        return;
+      }
+      processFile(file);
+    }
+  }
+  
   return (
-    <Card>
-      <CardHeader className="px-6 py-3 border-b">
-        <CardTitle className="text-lg">Upload PDF</CardTitle>
+    <Card className="bg-card text-card-foreground rounded-lg border shadow-sm hover-lift transition-all animate-fade-in">
+      <CardHeader className="px-4 py-3 border-b flex flex-row items-center space-y-0">
+        <CardTitle className="text-base font-medium">Upload PDF</CardTitle>
       </CardHeader>
       
-      <CardContent className="p-6">
+      <CardContent className="p-4">
         <div className="space-y-4">
           <div 
-            className="border-2 border-dashed rounded-lg p-6 text-center cursor-pointer hover:bg-muted/50 transition-colors"
+            className={`border-2 border-dashed rounded-md p-6 text-center cursor-pointer transition-all duration-200 ${
+              dragActive ? 'border-primary bg-primary/5 scale-105' : 'hover:bg-muted/50'
+            } ${success ? 'bg-green-50 border-green-200' : ''}`}
             onClick={handleButtonClick}
+            onDragEnter={handleDrag}
+            onDragLeave={handleDrag}
+            onDragOver={handleDrag}
+            onDrop={handleDrop}
           >
             <input
               ref={fileInputRef}
@@ -126,31 +177,46 @@ export default function FileUpload({ userId, onUpload }: FileUploadProps) {
             />
             
             {uploading ? (
-              <div className="flex flex-col items-center space-y-2">
+              <div className="flex flex-col items-center space-y-3 animate-fade-in">
                 <Loader2 className="h-8 w-8 text-primary animate-spin" />
                 <p className="text-sm font-medium">Processing PDF...</p>
-                <div className="w-full bg-muted rounded-full h-2 mt-2">
+                <div className="w-full bg-secondary rounded-full h-2.5 mt-2 overflow-hidden">
                   <div 
-                    className="bg-primary h-2 rounded-full transition-all" 
-                    style={{ width: `${progress}%` }} 
+                    className="bg-primary h-2.5 rounded-full transition-all"
+                    style={{ 
+                      width: `${progress}%`,
+                      transition: 'width 0.5s ease-in-out'
+                    }} 
                   />
                 </div>
-                <p className="text-xs text-muted-foreground">{fileName}</p>
+                <div className="flex items-center text-xs gap-2 text-muted-foreground animate-slide-up">
+                  <FileIcon className="h-3 w-3" />
+                  <span className="truncate max-w-[180px]">{fileName}</span>
+                </div>
+              </div>
+            ) : success ? (
+              <div className="flex flex-col items-center space-y-2 animate-slide-up">
+                <CheckCircle2 className="h-8 w-8 text-green-500 animate-scale" />
+                <p className="text-sm font-medium text-green-700">Upload Complete!</p>
+                <p className="text-xs text-green-600">Your document is ready to use</p>
               </div>
             ) : (
               <div className="flex flex-col items-center space-y-2">
-                <Upload className="h-8 w-8 text-muted-foreground" />
-                <p className="text-sm font-medium">Click to upload a PDF</p>
+                <div className="relative">
+                  <Upload className={`h-8 w-8 text-muted-foreground ${dragActive ? 'text-primary animate-bounce-gentle' : ''}`} />
+                  {dragActive && (
+                    <span className="absolute -top-1 -right-1 h-2 w-2 bg-primary rounded-full animate-ping" />
+                  )}
+                </div>
+                <p className="text-sm font-medium">
+                  {dragActive ? "Drop PDF here" : "Drop PDF here or click to upload"}
+                </p>
                 <p className="text-xs text-muted-foreground">
-                  or drag and drop
+                  PDF files only, max 10MB
                 </p>
               </div>
             )}
           </div>
-          
-          <p className="text-xs text-muted-foreground text-center">
-            PDF files only. Max size: 10MB.
-          </p>
         </div>
       </CardContent>
     </Card>

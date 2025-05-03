@@ -8,6 +8,7 @@ import { Button } from "@/components/ui/button";
 import FileUpload from "@/components/FileUpload";
 import ChatInterface from "@/components/ChatInterface";
 import { toast } from "sonner";
+import { FileText, LogOut, ChevronRight } from "lucide-react";
 
 interface Document {
   id: string;
@@ -20,6 +21,7 @@ export default function Dashboard() {
   const { user, signOut } = useAuth();
   const [documents, setDocuments] = useState<Document[]>([]);
   const [isLoading, setIsLoading] = useState(true);
+  const [activeTab, setActiveTab] = useState<string>("chat");
 
   useEffect(() => {
     fetchDocuments();
@@ -49,62 +51,135 @@ export default function Dashboard() {
     fetchDocuments();
   };
 
+  // Mobile-friendly layout with tabs
   return (
-    <div className="min-h-screen bg-gray-50">
-      <header className="bg-white shadow">
-        <div className="mx-auto max-w-7xl px-4 py-4 sm:px-6 lg:px-8">
-          <div className="flex justify-between items-center">
-            <h1 className="text-2xl font-bold text-gray-900">DeepSeek RAG</h1>
-            <div className="flex items-center gap-4">
-              <span className="text-sm text-gray-600">{user?.email}</span>
-              <Button
-                variant="outline"
-                onClick={signOut}
-              >
-                Sign out
-              </Button>
+    <div className="min-h-screen bg-background">
+      <header className="sticky top-0 z-40 w-full border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
+        <div className="container flex h-14 items-center">
+          <div className="mr-4 flex">
+            <a href="/" className="flex items-center space-x-2">
+              <FileText className="h-5 w-5" />
+              <span className="font-bold inline-block">DeepSeek RAG</span>
+            </a>
+          </div>
+          <div className="flex flex-1 items-center justify-end space-x-2">
+            <div className="hidden md:flex">
+              <span className="text-sm text-muted-foreground mr-2">{user?.email}</span>
             </div>
+            <Button variant="ghost" size="icon" onClick={signOut}>
+              <LogOut className="h-4 w-4" />
+              <span className="sr-only">Sign out</span>
+            </Button>
           </div>
         </div>
       </header>
 
-      <main className="mx-auto max-w-7xl px-4 py-6 sm:px-6 lg:px-8">
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+      <div className="container mt-6">
+        {/* Mobile tabs */}
+        <div className="md:hidden mb-6">
+          <Tabs value={activeTab} onValueChange={setActiveTab}>
+            <TabsList className="grid w-full grid-cols-2">
+              <TabsTrigger value="chat">Chat</TabsTrigger>
+              <TabsTrigger value="documents">Documents</TabsTrigger>
+            </TabsList>
+            
+            <TabsContent value="chat" className="mt-4">
+              <ChatInterface userId={user?.id || ""} />
+            </TabsContent>
+            
+            <TabsContent value="documents" className="mt-4">
+              <div className="space-y-6">
+                <FileUpload
+                  userId={user?.id || ""}
+                  onUpload={handleDocumentUpload}
+                />
+
+                <div className="bg-card text-card-foreground rounded-lg border shadow-sm">
+                  <div className="p-4 border-b">
+                    <h2 className="text-lg font-medium">Your Documents</h2>
+                  </div>
+                  <div className="p-4">
+                    {isLoading ? (
+                      <p className="text-muted-foreground">Loading documents...</p>
+                    ) : documents.length === 0 ? (
+                      <div className="text-center py-8">
+                        <FileText className="h-10 w-10 mx-auto text-muted-foreground opacity-50" />
+                        <p className="mt-4 text-muted-foreground">No documents uploaded yet.</p>
+                      </div>
+                    ) : (
+                      <ul className="space-y-2">
+                        {documents.map((doc) => (
+                          <li key={doc.id} className="group flex items-center justify-between p-3 rounded-md border hover:bg-accent/50 transition-colors">
+                            <div className="min-w-0 flex-1">
+                              <p className="truncate font-medium text-sm">{doc.name}</p>
+                              <p className="text-xs text-muted-foreground">
+                                {new Date(doc.created_at).toLocaleDateString()}
+                              </p>
+                            </div>
+                            <a
+                              href={doc.url}
+                              target="_blank"
+                              rel="noopener noreferrer"
+                              className="ml-2 rounded-full p-1 hover:bg-accent"
+                            >
+                              <ChevronRight className="h-4 w-4" />
+                              <span className="sr-only">View Document</span>
+                            </a>
+                          </li>
+                        ))}
+                      </ul>
+                    )}
+                  </div>
+                </div>
+              </div>
+            </TabsContent>
+          </Tabs>
+        </div>
+        
+        {/* Desktop layout */}
+        <div className="hidden md:grid md:grid-cols-3 gap-6">
           <div className="md:col-span-1 space-y-6">
             <FileUpload
               userId={user?.id || ""}
               onUpload={handleDocumentUpload}
             />
 
-            <div className="bg-white shadow rounded-lg p-4">
-              <h2 className="text-lg font-medium mb-4">Your Documents</h2>
-              
-              {isLoading ? (
-                <p className="text-gray-500">Loading documents...</p>
-              ) : documents.length === 0 ? (
-                <p className="text-gray-500">No documents uploaded yet.</p>
-              ) : (
-                <ul className="space-y-2">
-                  {documents.map((doc) => (
-                    <li key={doc.id} className="border rounded p-3">
-                      <div className="flex justify-between items-center">
-                        <span className="font-medium">{doc.name}</span>
-                        <span className="text-xs text-gray-500">
-                          {new Date(doc.created_at).toLocaleDateString()}
-                        </span>
-                      </div>
-                      <a
-                        href={doc.url}
-                        target="_blank"
-                        rel="noopener noreferrer"
-                        className="text-sm text-blue-500 hover:underline"
-                      >
-                        View Document
-                      </a>
-                    </li>
-                  ))}
-                </ul>
-              )}
+            <div className="bg-card text-card-foreground rounded-lg border shadow-sm">
+              <div className="p-4 border-b">
+                <h2 className="text-lg font-medium">Your Documents</h2>
+              </div>
+              <div className="p-4">
+                {isLoading ? (
+                  <p className="text-muted-foreground">Loading documents...</p>
+                ) : documents.length === 0 ? (
+                  <div className="text-center py-8">
+                    <FileText className="h-10 w-10 mx-auto text-muted-foreground opacity-50" />
+                    <p className="mt-4 text-muted-foreground">No documents uploaded yet.</p>
+                  </div>
+                ) : (
+                  <ul className="space-y-2">
+                    {documents.map((doc) => (
+                      <li key={doc.id} className="group flex items-center justify-between p-3 rounded-md border hover:bg-accent/50 transition-colors">
+                        <div className="min-w-0 flex-1">
+                          <p className="truncate font-medium text-sm">{doc.name}</p>
+                          <p className="text-xs text-muted-foreground">
+                            {new Date(doc.created_at).toLocaleDateString()}
+                          </p>
+                        </div>
+                        <a
+                          href={doc.url}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          className="ml-2 rounded-full p-1 hover:bg-accent"
+                        >
+                          <ChevronRight className="h-4 w-4" />
+                          <span className="sr-only">View Document</span>
+                        </a>
+                      </li>
+                    ))}
+                  </ul>
+                )}
+              </div>
             </div>
           </div>
 
@@ -112,7 +187,7 @@ export default function Dashboard() {
             <ChatInterface userId={user?.id || ""} />
           </div>
         </div>
-      </main>
+      </div>
     </div>
   );
 }
