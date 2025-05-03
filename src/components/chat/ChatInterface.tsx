@@ -50,59 +50,15 @@ export default function ChatInterface() {
         throw new Error('User not authenticated');
       }
       
-      // Retrieve relevant chunks from vector store API
-      const queryResponse = await fetch('/api/pdf/query', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({
-          query: userMessage.content,
-          userId: user.id,
-          topK: 5
-        }),
-      });
-      
-      const responseData = await queryResponse.json();
-      
-      // Check if no documents are available
-      if (responseData.noDocuments) {
-        const noDocsMessage = {
-          id: Date.now().toString(),
-          role: 'assistant' as const,
-          content: "I don't have any documents to search through yet. Please upload a PDF document first so I can answer questions about it.",
-          timestamp: new Date(),
-        };
-        
-        setMessages((prev) => [...prev, noDocsMessage]);
-        setIsProcessing(false);
-        return;
-      }
-      
-      // Format context for the model
-      const context = responseData.results?.map(chunk => chunk.content)?.join('\n\n') || '';
-      
-      // Prepare prompt with context and user query
-      const prompt = `
-        You are a helpful assistant answering questions based on provided documents.
-        
-        CONTEXT:
-        ${context || "No relevant context found in documents."}
-        
-        USER QUESTION:
-        ${userMessage.content}
-        
-        Please answer the question based only on the provided context. If you can't answer from the context, simply state that the information isn't available in the provided documents.
-      `;
-      
-      // Call the model API
+      // Skip the document retrieval and use direct completion
+      // Call the model API directly
       const response = await openRouterService.chat.completions.create({
-        model: "deepseek/deepseek-lm-67b",
+        model: "deepseek/deepseek-prover-v2:free",
         messages: [
-          { role: "system", content: "You are a helpful RAG assistant." },
-          { role: "user", content: prompt }
+          { role: "system", content: "You are a helpful assistant." },
+          { role: "user", content: userMessage.content }
         ],
-        temperature: 0.2,
+        temperature: 0.7,
         max_tokens: 1000,
       });
       
@@ -120,7 +76,7 @@ export default function ChatInterface() {
       const errorMessage = {
         id: Date.now().toString(),
         role: 'assistant' as const,
-        content: 'Sorry, I encountered an error processing your request. You may need to upload documents first or try again later.',
+        content: 'Sorry, I encountered an error processing your request. Please try again later.',
         timestamp: new Date(),
       };
       
