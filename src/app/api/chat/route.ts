@@ -1,12 +1,21 @@
+// src/app/api/chat/route.ts (updated)
 import { NextResponse } from "next/server";
 import { queryDocuments } from "@/lib/ragservice";
 import OpenAI from "openai";
+import { createClient } from "@supabase/supabase-js";
 
 // Initialize OpenRouter client
 const openRouter = new OpenAI({
   apiKey: process.env.NEXT_PUBLIC_OPENROUTER_API_KEY || "",
   baseURL: "https://openrouter.ai/api/v1",
 });
+
+// Create admin client to check documents
+const supabaseAdmin = createClient(
+  process.env.NEXT_PUBLIC_SUPABASE_URL!,
+  process.env.NEXT_PUBLIC_SUPABASE_ROLE_KEY!,
+  { auth: { persistSession: false } }
+);
 
 export async function POST(request: Request) {
   try {
@@ -19,8 +28,34 @@ export async function POST(request: Request) {
       );
     }
     
-    // Query relevant documents from vector DB
+    // Check if user has documents
+    const { data: docs, error: docsError } = await supabaseAdmin
+      .from("documents")
+      .select("id")
+      .eq("user_id", userId);
+      
+    if (docsError) {
+      console.error("Error checking documents:", docsError);
+    }
+    
+    if (!docs || docs.length === 0) {
+      return NextResponse.json({
+        response: "Please upload some documents first before asking questions.",
+        sources: []
+      });
+    }
+    
+    // Query relevant documents from vector DB with more detailed error handling
+    console.log("Querying documents for:", userId);
     const results = await queryDocuments(message, userId);
+    console.log("Search results:", JSON.stringify(results, null, 2));
+    
+    if (!results || !results.matches || results.matches.length === 0) {
+      return NextResponse.json({
+        response: "I couldn't find relevant information in your documents to answer that question.",
+        sources: []
+      });
+    }
     
     // Extract relevant context from the results
     const context = results.matches
@@ -49,7 +84,7 @@ Answer:`;
     
     // Get response from OpenRouter (using DeepSeek model)
     const completion = await openRouter.chat.completions.create({
-      model: "deepseek/deepseek-r1:free",
+      model: "deepseek/deepseek-r1-distill-qwen-14b:free",
       messages: [{ role: "user", content: prompt }],
       temperature: 0.1,
       max_tokens: 1000,
