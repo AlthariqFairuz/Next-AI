@@ -1,16 +1,17 @@
+// pages/index.jsx
 "use client";
-
-import React, { useEffect, useRef } from "react";
-import Link from "next/link";
-import { Button } from "@/components/ui/button";
-import { useAuth } from "@/context/AuthContext";
-import { ArrowRight, Database, MessageSquare, Upload, Sparkles } from "lucide-react";
+import React, { useEffect, useRef, useState } from 'react';
+import Link from 'next/link';
+import { ChevronRight, ArrowRight, Code, Layers, Zap, Database, Upload, MessageSquare, Sparkles  } from 'lucide-react';
+import { Button } from '@/components/ui/button';
+import Navbar from '@/components/Navbar';
+import { useAuth } from '@/context/AuthContext';
 
 export default function Home() {
-  const { user, isLoading } = useAuth();
-  const heroRef = useRef<HTMLDivElement>(null);
-  const featuresRef = useRef<HTMLDivElement>(null);
-
+  const heroRef = useRef(null);
+  const featuresRef = useRef(null);
+  const [isDarkMode, setIsDarkMode] = useState(true);
+  
   useEffect(() => {
     // Animate hero section on page load
     const heroElement = heroRef.current;
@@ -49,35 +50,17 @@ export default function Home() {
     };
   }, []);
 
+  const toggleTheme = () => {
+    setIsDarkMode(!isDarkMode);
+  };
+
+  // Use the auth context
+  const { user } = useAuth();
+
   return (
     <div className="flex min-h-screen flex-col bg-background text-foreground">
-      {/* Header with glassmorphism effect */}
-      <header className="sticky top-0 z-40 w-full backdrop-blur-md bg-background/70 border-b border-border">
-        <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
-          <div className="flex h-16 items-center justify-between">
-            <div className="flex items-center gap-2">
-              <Database className="h-6 w-6 text-primary" />
-              <span className="text-xl font-bold">DeepSeek RAG</span>
-            </div>
-            <div className="flex items-center gap-4">
-              {!user ? (
-                <>
-                  <Link href="/login">
-                    <Button variant="ghost">Log in</Button>
-                  </Link>
-                  <Link href="/register">
-                    <Button>Sign up</Button>
-                  </Link>
-                </>
-              ) : (
-                <Link href="/dashboard">
-                  <Button>Dashboard</Button>
-                </Link>
-              )}
-            </div>
-          </div>
-        </div>
-      </header>
+      {/* Navbar with auth integration */}
+      <Navbar />
 
       <main className="flex-1">
         {/* Hero section with gradient animation */}
@@ -85,20 +68,32 @@ export default function Home() {
           ref={heroRef}
           className="relative opacity-0 translate-y-6 transition-all duration-700 ease-out py-16 md:py-24 lg:py-32 overflow-hidden"
         >
-          <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8 text-center">
+          <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8 text-center relative z-10">
             <div className="mx-auto max-w-3xl">
-              <h1 className="text-3xl sm:text-4xl md:text-5xl lg:text-6xl font-bold tracking-tight mb-6">
-                Chat with your documents using{" "}
-                <span className="bg-clip-text text-transparent bg-gradient-to-r from-primary to-sidebar-primary animate-gradient">
-                  NEXT AI
+              <h1 className="text-3xl sm:text-4xl md:text-5xl lg:text-6xl font-bold mb-6 tracking-tight">
+                Chat with your
+                <br /> documents using{" "}
+                <span className="bg-clip-text text-transparent bg-gradient-to-r from-white to-gray-400 animate-gradient-x flex items-center justify-center gap-2">
+                  <span className="relative">
+                      <Link href="/" className="flex items-center gap-2">
+                        <span className="text-xl font-bold bg-clip-text text-transparent bg-gradient-to-r from-white to-gray-400">NEXT AI</span>
+                      </Link>
+                  </span>
                 </span>
               </h1>
-              <p className="text-base sm:text-lg md:text-xl text-muted-foreground mb-8 sm:mb-10">
-                Upload your PDFs and get instant answers powered by DeepSeek AI. 
+              <p className="text-base sm:text-lg md:text-xl text-muted-foreground mb-8 sm:mb-10 max-w-2xl mx-auto">
+                Upload your PDFs and get instant answers powered by various AI models. 
                 No more searching through hundreds of pages.
               </p>
               <div className="flex flex-col sm:flex-row gap-4 justify-center">
-                {!user ? (
+                {user ? (
+                  <Link href="/dashboard">
+                    <Button size="lg" className="w-full sm:w-auto group gap-2">
+                      Go to Dashboard
+                      <ArrowRight className="h-4 w-4 transition-transform group-hover:translate-x-1" />
+                    </Button>
+                  </Link>
+                ) : (
                   <>
                     <Link href="/register">
                       <Button size="lg" className="w-full sm:w-auto group gap-2">
@@ -112,40 +107,38 @@ export default function Home() {
                       </Button>
                     </Link>
                   </>
-                ) : (
-                  <Link href="/dashboard">
-                    <Button size="lg" className="w-full sm:w-auto group gap-2">
-                      Go to Dashboard
-                      <ArrowRight className="h-4 w-4 transition-transform group-hover:translate-x-1" />
-                    </Button>
-                  </Link>
                 )}
               </div>
             </div>
           </div>
 
-          {/* Animated background gradient orbs */}
+          {/* Animated background - with reduced opacity for the checker pattern */}
           <div className="absolute inset-0 -z-10 overflow-hidden">
-            <div
-              className="absolute -top-40 -right-40 h-96 w-96 rounded-full bg-primary/20 blur-3xl motion-safe:animate-pulse-slow"
-            ></div>
-            <div
-              className="absolute -bottom-40 -left-40 h-96 w-96 rounded-full bg-sidebar-primary/20 blur-3xl motion-safe:animate-pulse-slow motion-safe:animation-delay-2000"
-            ></div>
+            {/* Gradient orbs */}
+            <div className="absolute top-1/4 -right-20 w-64 h-64 rounded-full bg-gradient-to-r from-purple-900/30 to-blue-900/30 blur-3xl animate-float"></div>
+            <div className="absolute -bottom-40 -left-40 w-96 h-96 rounded-full bg-gradient-to-r from-gray-900/20 to-gray-700/20 blur-3xl animate-pulse-slow"></div>
+            
+            {/* Grid overlay for texture - reduced opacity */}
+            <div className="absolute inset-0 bg-[url('data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iNjAiIGhlaWdodD0iNjAiIHZpZXdCb3g9IjAgMCA2MCA2MCIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj48ZyBmaWxsPSJub25lIiBmaWxsLXJ1bGU9ImV2ZW5vZGQiPjxwYXRoIGZpbGw9IiMxMTEiIGQ9Ik0wIDBoNjB2NjBIMHoiLz48cGF0aCBkPSJNMzAgMzBoMzB2MzBIMzB6IiBzdHJva2Utb3BhY2l0eT0iLjAxIiBzdHJva2U9IiNmZmYiIGZpbGw9IiMwYzBjMGMiLz48cGF0aCBkPSJNMzAgMHYzMEgwVjB6IiBzdHJva2Utb3BhY2l0eT0iLjAxIiBzdHJva2U9IiNmZmYiIGZpbGw9IiMwYzBjMGMiLz48L2c+PC9zdmc+')] opacity-30"></div>
+            
+            {/* Vignette overlay */}
+            <div className="absolute inset-0 bg-radial-gradient"></div>
           </div>
         </section>
 
         {/* Features section with stagger animation */}
         <section
+          id="features"
           ref={featuresRef}
-          className="py-16 md:py-20 bg-muted"
+          className="py-16 md:py-24"
         >
           <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
-            <h2 className="text-2xl sm:text-3xl font-bold text-center mb-8 sm:mb-12">
-              Powerful features at your fingertips
-            </h2>
+            <div className="text-center mb-16">
+              <h2 className="text-2xl sm:text-3xl md:text-4xl font-bold mb-4">Powerful features</h2>
+              <p className="text-muted-foreground max-w-2xl mx-auto">Everything you need to build modern applications in one accessible platform</p>
+            </div>
             
-            <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-3 lg:gap-8">
+            <div className="grid gap-8 sm:grid-cols-2 lg:grid-cols-3">
               {[
                 {
                   icon: <Upload className="h-6 w-6" />,
@@ -165,7 +158,7 @@ export default function Home() {
               ].map((feature, index) => (
                 <div
                   key={index}
-                  className="feature-card opacity-0 translate-y-8 transition-all duration-700 ease-out p-6 bg-card text-card-foreground rounded-xl shadow-sm border border-border hover:shadow-md transition-shadow"
+                  className="feature-card opacity-0 translate-y-8 transition-all duration-700 ease-out p-6 rounded-xl border border-gray-800 hover:border-gray-700 bg-gradient-to-b from-gray-900 to-black"
                 >
                   <div className="p-2 bg-primary/10 inline-flex rounded-lg mb-4">
                     {feature.icon}
@@ -185,42 +178,148 @@ export default function Home() {
           <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8 relative z-10">
             <div className="max-w-2xl mx-auto text-center">
               <Sparkles className="h-10 w-10 mx-auto mb-6 text-primary motion-safe:animate-float" />
-              <h2 className="text-2xl sm:text-3xl font-bold mb-4 sm:mb-6">
+              <h2 className="text-2xl sm:text-3xl font-bold mb-6">
                 Ready to transform how you work with documents?
               </h2>
-              <p className="text-base sm:text-lg md:text-xl text-muted-foreground mb-6 sm:mb-8">
-                Join thousands of professionals who are saving hours with DeepSeek RAG.
+              <p className="text-muted-foreground mb-8 max-w-lg mx-auto">
+                Join thousands of professionals who are saving hours with NEXT AI.
               </p>
-              <Link href={user ? "/dashboard" : "/register"}>
-                <Button size="lg" className="w-full sm:w-auto group gap-2">
-                  {user ? "Go to Dashboard" : "Get started for free"}
-                  <ArrowRight className="h-4 w-4 transition-transform group-hover:translate-x-1" />
-                </Button>
-              </Link>
+              <div className="flex flex-col sm:flex-row gap-4 justify-center">
+                {user ? (
+                  <Link href="/dashboard">
+                    <Button size="lg" className="w-full sm:w-auto group gap-2">
+                      Go to Dashboard
+                      <ArrowRight className="h-4 w-4 transition-transform group-hover:translate-x-1" />
+                    </Button>
+                  </Link>
+                ) : (
+                  <Link href="/register">
+                    <Button size="lg" className="w-full sm:w-auto">
+                      Get started for free
+                    </Button>
+                  </Link>
+                )}
+              </div>
             </div>
           </div>
 
-          {/* Background decoration */}
-          <div className="absolute inset-0 -z-10 opacity-50">
-            <div className="absolute top-1/4 left-1/4 h-64 w-64 rounded-full bg-primary/30 blur-3xl"></div>
-            <div className="absolute bottom-1/3 right-1/3 h-64 w-64 rounded-full bg-sidebar-primary/30 blur-3xl"></div>
+          {/* Background decoration with reduced opacity */}
+          <div className="absolute inset-0 -z-10">
+            <div className="absolute inset-0 bg-gradient-to-b from-black via-gray-900 to-black"></div>
+            <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-full h-full max-w-3xl mx-auto">
+              <div className="absolute top-0 right-0 w-64 h-64 bg-purple-500/5 blur-3xl rounded-full"></div>
+              <div className="absolute bottom-0 left-0 w-64 h-64 bg-blue-500/5 blur-3xl rounded-full"></div>
+            </div>
           </div>
         </section>
       </main>
 
-      <footer className="bg-background border-t border-border">
-        <div className="mx-auto max-w-7xl px-4 py-8 sm:px-6 lg:px-8">
-          <div className="flex flex-col md:flex-row justify-between items-center">
-            <div className="flex items-center gap-2 mb-4 md:mb-0">
-              <Database className="h-5 w-5 text-primary" />
-              <span className="font-semibold">DeepSeek RAG</span>
+      <footer className="bg-background border-t border-gray-800">
+        <div className="mx-auto max-w-7xl px-4 py-12 sm:px-6 lg:px-8">
+          <div className="flex flex-col md:flex-row justify-between items-center gap-6">
+            <div className="flex items-center gap-2">
+              <div className="relative w-6 h-6">
+                <div className="absolute inset-0 bg-gradient-to-r from-purple-500 to-blue-500 rounded-full"></div>
+                <div className="absolute inset-1 bg-black rounded-full"></div>
+              </div>
+              <span className="text-lg font-bold bg-clip-text text-transparent bg-gradient-to-r from-white to-gray-400">NEXT AI</span>
+            </div>
+            <div className="flex flex-wrap justify-center gap-x-8 gap-y-4">
+              <a href="#features" className="text-sm text-muted-foreground hover:text-foreground transition-colors">Features</a>
+              <a href="#" className="text-sm text-muted-foreground hover:text-foreground transition-colors">Documentation</a>
+              <a href="#" className="text-sm text-muted-foreground hover:text-foreground transition-colors">Blog</a>
+              <a href="#" className="text-sm text-muted-foreground hover:text-foreground transition-colors">Support</a>
             </div>
             <p className="text-sm text-muted-foreground">
-              &copy; 2025 DeepSeek RAG. All rights reserved.
+              &copy; 2025 NEXT AI. All rights reserved.
             </p>
           </div>
         </div>
       </footer>
+
+      {/* Add global CSS */}
+      <style jsx global>{`
+        @keyframes gradient-x {
+          0%, 100% {
+            background-position: 0% 50%;
+          }
+          50% {
+            background-position: 100% 50%;
+          }
+        }
+        
+        @keyframes pulse-slow {
+          0%, 100% {
+            opacity: 0.6;
+            transform: scale(1);
+          }
+          50% {
+            opacity: 0.8;
+            transform: scale(1.05);
+          }
+        }
+        
+        @keyframes float {
+          0%, 100% {
+            transform: translateY(0);
+          }
+          50% {
+            transform: translateY(-15px);
+          }
+        }
+        
+        @keyframes fadeIn {
+          from {
+            opacity: 0;
+            transform: translateY(20px);
+          }
+          to {
+            opacity: 1;
+            transform: translateY(0);
+          }
+        }
+        
+        .animate-gradient-x {
+          background-size: 200% 200%;
+          animation: gradient-x 8s ease infinite;
+        }
+        
+        .animate-pulse-slow {
+          animation: pulse-slow 6s ease-in-out infinite;
+        }
+        
+        .animate-float {
+          animation: float 6s ease-in-out infinite;
+        }
+        
+        .animate-fade-in {
+          opacity: 1 !important;
+          transform: translateY(0) !important;
+          transition: opacity 0.6s ease-out, transform 0.6s ease-out;
+        }
+        
+        .bg-radial-gradient {
+          background: radial-gradient(circle at center, transparent 0%, rgba(0, 0, 0, 0.8) 100%);
+        }
+        
+        /* Media queries for responsive design */
+        @media (max-width: 640px) {
+          .animate-pulse-slow,
+          .animate-float,
+          .animate-gradient-x {
+            animation-duration: 4s; /* Shorter animations on mobile */
+          }
+        }
+        
+        /* Respect reduced motion */
+        @media (prefers-reduced-motion: reduce) {
+          .animate-pulse-slow,
+          .animate-float,
+          .animate-gradient-x {
+            animation: none !important;
+          }
+        }
+      `}</style>
     </div>
   );
 }
