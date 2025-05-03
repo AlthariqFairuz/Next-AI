@@ -6,7 +6,6 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { toast } from "sonner";
 import { cloudinaryUpload } from '@/services/cloudinary';
-import { processPdf } from '@/services/pdfProcessor';
 import { supabase } from '@/lib/supabase';
 import { Upload, File } from 'lucide-react';
 
@@ -21,7 +20,7 @@ export default function PdfUpload() {
       
       // Check if the file is a PDF
       if (selectedFile.type !== 'application/pdf') {
-        toast("Invalid file type", {
+        toast.error("Invalid file type", {
           description: "Please upload a PDF file",
         });
         return;
@@ -38,7 +37,7 @@ export default function PdfUpload() {
   
   const handleUpload = async () => {
     if (!file || !documentName) {
-      toast("Missing information", {
+      toast.error("Missing information", {
         description: "Please select a file and provide a document name",
       });
       return;
@@ -57,10 +56,25 @@ export default function PdfUpload() {
       // Upload to Cloudinary
       const cloudinaryUrl = await cloudinaryUpload(file);
       
-      // Process PDF and store in vector database
-      await processPdf(cloudinaryUrl, user.id, documentName);
+      // Process PDF via API endpoint instead of direct process
+      const response = await fetch('/api/pdf/process', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          pdfUrl: cloudinaryUrl,
+          userId: user.id,
+          documentName: documentName,
+        }),
+      });
       
-      toast("Success", {
+      if (!response.ok) {
+        const errorData = await response.json();
+        throw new Error(errorData.details || 'Failed to process PDF');
+      }
+      
+      toast.success("Success", {
         description: "PDF uploaded and processed successfully",
       });
       
@@ -75,7 +89,7 @@ export default function PdfUpload() {
       }
     } catch (error) {
       console.error('Error uploading PDF:', error);
-      toast("Error", {
+      toast.error("Error", {
         description: error instanceof Error ? error.message : 'Failed to upload and process PDF',
       });
     } finally {

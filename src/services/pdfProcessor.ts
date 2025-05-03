@@ -1,25 +1,34 @@
 import { supabase } from '@/lib/supabase';
-import { PDFExtract } from 'pdf.js-extract';
+import * as pdfjs from 'pdfjs-dist';
 import { getVectorStore } from './vectorstore';
+
+// Initialize PDF.js
+pdfjs.GlobalWorkerOptions.workerSrc = `//cdnjs.cloudflare.com/ajax/libs/pdf.js/${pdfjs.version}/pdf.worker.min.js`;
 
 // Extract text from PDF
 export const extractTextFromPdf = async (pdfUrl: string): Promise<string> => {
   try {
     const response = await fetch(pdfUrl);
     const pdfBuffer = await response.arrayBuffer();
-    const pdfExtract = new PDFExtract();
     
-    // const options = {};
-    const data = await pdfExtract.extractBuffer(Buffer.from(pdfBuffer));
+    // Load the PDF document
+    const loadingTask = pdfjs.getDocument({ data: pdfBuffer });
+    const pdf = await loadingTask.promise;
     
-    // Concatenate text from all pages
     let extractedText = '';
-    data.pages.forEach(page => {
-      page.content.forEach(item => {
-        extractedText += item.str + ' ';
-      });
-      extractedText += '\n\n';
-    });
+    
+    // Iterate through each page
+    for (let i = 1; i <= pdf.numPages; i++) {
+      const page = await pdf.getPage(i);
+      const textContent = await page.getTextContent();
+      
+      // Extract text items
+      const pageText = textContent.items
+        .map(item => 'str' in item ? item.str : '')
+        .join(' ');
+      
+      extractedText += pageText + '\n\n';
+    }
     
     return extractedText;
   } catch (error) {
@@ -44,7 +53,6 @@ export const processPdf = async (
   documentName: string
 ): Promise<void> => {
   try {
-
     const extractedText = await extractTextFromPdf(pdfUrl);
     
     const textChunks = splitTextIntoChunks(extractedText);
