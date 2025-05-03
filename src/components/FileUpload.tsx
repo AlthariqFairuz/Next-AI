@@ -2,27 +2,40 @@
 
 import { useState, useRef } from 'react';
 import { supabase } from '@/lib/supabase';
+import { Card, CardHeader, CardContent, CardTitle } from "@/components/ui/card";
+import { Button } from "@/components/ui/button";
+import { toast } from "sonner";
+import { Upload, File, Loader2 } from "lucide-react";
 
-export default function FileUpload({ userId, onUpload }) {
+interface FileUploadProps {
+  userId: string;
+  onUpload?: () => void;
+}
+
+export default function FileUpload({ userId, onUpload }: FileUploadProps) {
   const [uploading, setUploading] = useState(false);
   const [fileName, setFileName] = useState('');
-  const fileInputRef = useRef(null);
+  const [progress, setProgress] = useState(0);
+  const fileInputRef = useRef<HTMLInputElement>(null);
   
-  async function handleUpload(e) {
-    const file = e.target.files[0];
+  async function handleUpload(e: React.ChangeEvent<HTMLInputElement>) {
+    const file = e.target.files?.[0];
     if (!file || file.type !== 'application/pdf') {
-      alert('Please select a PDF file');
+      toast.error('Please select a PDF file');
       return;
     }
     
     setFileName(file.name);
     setUploading(true);
+    setProgress(10);
     
     try {
       // 1. Upload file to Supabase Storage
       const fileExt = file.name.split('.').pop();
       const fileName = `${Math.random().toString(36).substring(2)}.${fileExt}`;
       const filePath = `${userId}/${fileName}`;
+      
+      setProgress(20);
       
       const { error: uploadError } = await supabase.storage
         .from('pdfs')
@@ -35,11 +48,15 @@ export default function FileUpload({ userId, onUpload }) {
         .from('pdfs')
         .getPublicUrl(filePath);
       
+      setProgress(40);
+      
       // 3. Process the PDF for RAG
       const formData = new FormData();
       formData.append('file', file);
       formData.append('userId', userId);
       formData.append('documentName', file.name.replace(/\.[^/.]+$/, ""));
+      
+      setProgress(60);
       
       const response = await fetch('/api/pdf/upload', {
         method: 'POST',
@@ -50,6 +67,8 @@ export default function FileUpload({ userId, onUpload }) {
         const errorData = await response.json();
         throw new Error(errorData.error || 'Failed to process PDF');
       }
+      
+      setProgress(80);
       
       // 4. Add document to database
       const { error: dbError } = await supabase
@@ -63,39 +82,77 @@ export default function FileUpload({ userId, onUpload }) {
         
       if (dbError) throw dbError;
       
-      alert('Document uploaded and processed successfully!');
+      setProgress(100);
+      toast.success('Document uploaded successfully!');
+      
       if (onUpload) onUpload();
       
-    } catch (error) {
+    } catch (error: any) {
       console.error('Error uploading file:', error);
-      alert(error.message);
+      toast.error(error.message);
     } finally {
-      setUploading(false);
-      setFileName('');
-      if (fileInputRef.current) fileInputRef.current.value = '';
+      setTimeout(() => {
+        setUploading(false);
+        setFileName('');
+        setProgress(0);
+        if (fileInputRef.current) fileInputRef.current.value = '';
+      }, 1000);
     }
   }
   
+  function handleButtonClick() {
+    fileInputRef.current?.click();
+  }
+  
   return (
-    <div className="bg-white shadow rounded-lg p-4">
-      <h2 className="text-lg font-medium mb-4">Upload PDF</h2>
+    <Card>
+      <CardHeader className="px-6 py-3 border-b">
+        <CardTitle className="text-lg">Upload PDF</CardTitle>
+      </CardHeader>
       
-      <div className="space-y-4">
-        <input
-          ref={fileInputRef}
-          type="file"
-          accept="application/pdf"
-          onChange={handleUpload}
-          disabled={uploading}
-          className="w-full border p-2 rounded"
-        />
-        
-        {uploading && (
-          <div className="text-sm text-gray-500">
-            Processing {fileName}...
+      <CardContent className="p-6">
+        <div className="space-y-4">
+          <div 
+            className="border-2 border-dashed rounded-lg p-6 text-center cursor-pointer hover:bg-muted/50 transition-colors"
+            onClick={handleButtonClick}
+          >
+            <input
+              ref={fileInputRef}
+              type="file"
+              accept="application/pdf"
+              onChange={handleUpload}
+              disabled={uploading}
+              className="hidden"
+            />
+            
+            {uploading ? (
+              <div className="flex flex-col items-center space-y-2">
+                <Loader2 className="h-8 w-8 text-primary animate-spin" />
+                <p className="text-sm font-medium">Processing PDF...</p>
+                <div className="w-full bg-muted rounded-full h-2 mt-2">
+                  <div 
+                    className="bg-primary h-2 rounded-full transition-all" 
+                    style={{ width: `${progress}%` }} 
+                  />
+                </div>
+                <p className="text-xs text-muted-foreground">{fileName}</p>
+              </div>
+            ) : (
+              <div className="flex flex-col items-center space-y-2">
+                <Upload className="h-8 w-8 text-muted-foreground" />
+                <p className="text-sm font-medium">Click to upload a PDF</p>
+                <p className="text-xs text-muted-foreground">
+                  or drag and drop
+                </p>
+              </div>
+            )}
           </div>
-        )}
-      </div>
-    </div>
+          
+          <p className="text-xs text-muted-foreground text-center">
+            PDF files only. Max size: 10MB.
+          </p>
+        </div>
+      </CardContent>
+    </Card>
   );
 }

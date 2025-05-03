@@ -1,5 +1,3 @@
-// lib/ragService.ts
-
 import { CohereEmbeddings } from "@langchain/cohere";
 import { PDFLoader } from "@langchain/community/document_loaders/fs/pdf";
 import { RecursiveCharacterTextSplitter } from "langchain/text_splitter";
@@ -16,7 +14,7 @@ const pinecone = new Pinecone({
   apiKey: process.env.PINECONE_API_KEY!,
 });
 
-const index = pinecone.index('quickstart');
+const index = pinecone.index('sample-movies');
 
 // Process PDF files
 export async function processPdf(file) {

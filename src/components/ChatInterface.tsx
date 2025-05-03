@@ -1,24 +1,32 @@
-// components/ChatInterface.tsx
 "use client";
 
 import { useState, useRef, useEffect } from 'react';
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Card, CardHeader, CardContent, CardFooter, CardTitle } from "@/components/ui/card";
+import { toast } from "sonner";
+import { Send, FileText } from "lucide-react";
 
-export default function ChatInterface({ userId }) {
-  const [messages, setMessages] = useState([]);
+export default function ChatInterface({ userId }: { userId: string }) {
+  const [messages, setMessages] = useState<{
+    role: 'user' | 'assistant';
+    content: string;
+    sources?: string[];
+  }[]>([]);
   const [input, setInput] = useState('');
   const [isLoading, setIsLoading] = useState(false);
   
-  const messagesEndRef = useRef(null);
+  const messagesEndRef = useRef<HTMLDivElement>(null);
   
   // Auto-scroll to bottom when messages change
   useEffect(() => {
     messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
   }, [messages]);
   
-  async function handleSendMessage(e) {
+  async function handleSendMessage(e: React.FormEvent) {
     e.preventDefault();
     
-    if (!input.trim()) return;
+    if (!input.trim() || !userId) return;
     
     const userMessage = input.trim();
     setInput('');
@@ -51,8 +59,9 @@ export default function ChatInterface({ userId }) {
         sources: data.sources || []
       }]);
       
-    } catch (error) {
+    } catch (error: any) {
       console.error('Error:', error);
+      toast.error("Couldn't get a response. Please try again.");
       setMessages(prev => [...prev, { 
         role: 'assistant', 
         content: 'Sorry, I encountered an error. Please try again.' 
@@ -63,15 +72,19 @@ export default function ChatInterface({ userId }) {
   }
   
   return (
-    <div className="bg-white shadow rounded-lg flex flex-col h-[calc(100vh-12rem)]">
-      <div className="p-4 border-b">
-        <h2 className="text-lg font-medium">Chat with Your Documents</h2>
-      </div>
+    <Card className="flex flex-col h-[calc(100vh-8rem)]">
+      <CardHeader className="px-6 py-3 border-b">
+        <CardTitle className="text-lg">Chat with Your Documents</CardTitle>
+      </CardHeader>
       
-      <div className="flex-1 overflow-y-auto p-4 space-y-4">
+      <CardContent className="flex-1 overflow-y-auto p-4 space-y-4">
         {messages.length === 0 ? (
-          <div className="text-center text-gray-500 my-8">
-            Start chatting to ask questions about your documents
+          <div className="flex flex-col items-center justify-center h-full text-center text-muted-foreground space-y-3">
+            <FileText className="h-12 w-12 text-muted-foreground/50" />
+            <p className="text-lg font-medium">Ask questions about your documents</p>
+            <p className="text-sm max-w-md">
+              Upload PDFs from the left panel, then start asking questions here.
+            </p>
           </div>
         ) : (
           messages.map((msg, index) => (
@@ -82,16 +95,16 @@ export default function ChatInterface({ userId }) {
               <div
                 className={`max-w-[80%] rounded-lg p-3 ${
                   msg.role === 'user'
-                    ? 'bg-blue-500 text-white'
-                    : 'bg-gray-100 text-gray-800'
+                    ? 'bg-primary text-primary-foreground'
+                    : 'bg-muted text-foreground'
                 }`}
               >
-                <div>{msg.content}</div>
+                <div className="whitespace-pre-wrap">{msg.content}</div>
                 
                 {msg.sources && msg.sources.length > 0 && (
-                  <div className="mt-2 text-xs opacity-70">
-                    <div>Sources:</div>
-                    <ul className="list-disc pl-4">
+                  <div className="mt-2 text-xs opacity-70 border-t pt-2">
+                    <div className="font-medium">Sources:</div>
+                    <ul className="list-disc pl-4 mt-1 space-y-1">
                       {msg.sources.map((source, idx) => (
                         <li key={idx}>{source}</li>
                       ))}
@@ -103,27 +116,26 @@ export default function ChatInterface({ userId }) {
           ))
         )}
         <div ref={messagesEndRef} />
-      </div>
+      </CardContent>
       
-      <div className="border-t p-4">
-        <form onSubmit={handleSendMessage} className="flex gap-2">
-          <input
-            type="text"
+      <CardFooter className="border-t p-4">
+        <form onSubmit={handleSendMessage} className="flex w-full gap-2">
+          <Input
             value={input}
             onChange={(e) => setInput(e.target.value)}
             placeholder="Ask a question about your documents..."
             disabled={isLoading}
-            className="flex-1 p-2 border rounded"
+            className="flex-1"
           />
-          <button
+          <Button
             type="submit"
-            disabled={isLoading || !input.trim()}
-            className="bg-blue-500 text-white px-4 py-2 rounded hover:bg-blue-600 disabled:bg-gray-300"
+            disabled={isLoading || !input.trim() || !userId}
+            size="icon"
           >
-            {isLoading ? 'Thinking...' : 'Send'}
-          </button>
+            <Send className="h-4 w-4" />
+          </Button>
         </form>
-      </div>
-    </div>
+      </CardFooter>
+    </Card>
   );
 }
