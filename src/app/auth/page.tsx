@@ -4,6 +4,7 @@ import React, { useState, useEffect } from 'react';
 import { supabase } from '@/lib/supabase';
 import { toast } from "sonner";
 import { Mail, Lock, User, ArrowRight } from 'lucide-react';
+import { useRouter } from 'next/navigation';
 
 const AuthPage = () => {
   const [activeTab, setActiveTab] = useState('login');
@@ -12,13 +13,27 @@ const AuthPage = () => {
   const [name, setName] = useState('');
   const [loading, setLoading] = useState(false);
   const [mounted, setMounted] = useState(false);
+  const router = useRouter();
+
+//   useEffect(() => {
+//     const checkAuth = async () => {
+//       const { data } = await supabase.auth.getSession();
+//       if (data.session) {
+//         router.push('/');
+//       }
+//     };
+    
+//     if (mounted) {
+//       checkAuth();
+//     }
+//   }, [mounted, router]);
 
   // Prevent hydration issues
   useEffect(() => {
     setMounted(true);
   }, []);
 
-  const handleLogin = async (e) => {
+  const handleLogin = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
     setLoading(true);
     
@@ -31,14 +46,17 @@ const AuthPage = () => {
       if (error) throw error;
       toast.success("Logged in successfully");
       
-    } catch (error) {
+      // Redirect to home page after successful login
+      router.push('/');
+      
+    } catch (error: any) {
       toast.error(error.message || 'Failed to log in');
     } finally {
       setLoading(false);
     }
   };
 
-  const handleRegister = async (e) => {
+  const handleRegister = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
     setLoading(true);
     
@@ -55,7 +73,11 @@ const AuthPage = () => {
       
       if (error) throw error;
       toast.success("Account created successfully");
-    } catch (error) {
+      
+      setActiveTab('login');
+      setPassword(''); 
+      
+    } catch (error: any) {
       toast.error(error.message || 'Failed to create account');
     } finally {
       setLoading(false);
@@ -123,7 +145,7 @@ const AuthPage = () => {
             </div>
 
             {activeTab === 'login' ? (
-              <div className="space-y-6">
+              <form onSubmit={handleLogin} className="space-y-6">
                 <div className="space-y-2">
                   <label className="block text-sm font-medium text-gray-300">Email</label>
                   <div className="relative">
@@ -164,7 +186,7 @@ const AuthPage = () => {
                 </div>
                 
                 <button
-                  onClick={handleLogin}
+                  type="submit"
                   disabled={loading}
                   className="w-full bg-gradient-to-r from-indigo-600 to-purple-600 hover:from-indigo-700 hover:to-purple-700 text-white font-medium py-3 rounded-lg transition-all duration-200 flex items-center justify-center"
                 >
@@ -183,9 +205,9 @@ const AuthPage = () => {
                     </span>
                   )}
                 </button>
-              </div>
+              </form>
             ) : (
-              <div className="space-y-6">
+              <form onSubmit={handleRegister} className="space-y-6">
                 <div className="space-y-2">
                   <label className="block text-sm font-medium text-gray-300">Full Name</label>
                   <div className="relative">
@@ -242,7 +264,7 @@ const AuthPage = () => {
                 </div>
                 
                 <button
-                  onClick={handleRegister}
+                  type="submit"
                   disabled={loading}
                   className="w-full bg-gradient-to-r from-indigo-600 to-purple-600 hover:from-indigo-700 hover:to-purple-700 text-white font-medium py-3 rounded-lg transition-all duration-200 flex items-center justify-center"
                 >
@@ -261,7 +283,7 @@ const AuthPage = () => {
                     </span>
                   )}
                 </button>
-              </div>
+              </form>
             )}
             
             <div className="mt-8 text-center text-sm text-gray-500">

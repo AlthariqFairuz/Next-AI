@@ -4,7 +4,6 @@ import { useState, useRef, useEffect } from 'react';
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { toast } from "sonner";
-import { queryVectorStore } from '@/services/pdfProcessor';
 import openRouterService from '@/services/openRouter';
 import { supabase } from '@/lib/supabase';
 import { Send, Bot, User, CornerDownLeft } from 'lucide-react';
@@ -27,8 +26,8 @@ export default function ChatInterface() {
     messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
   }, [messages]);
   
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
+  const handleSubmit = async (e?: React.FormEvent) => {
+    if (e) e.preventDefault();
     
     if (!input.trim()) return;
     
@@ -51,11 +50,28 @@ export default function ChatInterface() {
         throw new Error('User not authenticated');
       }
       
-      // Retrieve relevant chunks from vector store
-      const contextChunks = await queryVectorStore(userMessage.content, user.id, 5);
+      // Retrieve relevant chunks from vector store API
+      const queryResponse = await fetch('/api/pdf/query', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          query: userMessage.content,
+          userId: user.id,
+          topK: 5
+        }),
+      });
+      
+      if (!queryResponse.ok) {
+        const errorData = await queryResponse.json();
+        throw new Error(errorData.details || 'Failed to query documents');
+      }
+      
+      const { results } = await queryResponse.json();
       
       // Format context for the model
-      const context = contextChunks.map(chunk => chunk.content).join('\n\n');
+      const context = results.map(chunk => chunk.content).join('\n\n');
       
       // Prepare prompt with context and user query
       const prompt = `
@@ -105,6 +121,13 @@ export default function ChatInterface() {
     }
   };
   
+  const handleKeyDown = (e: React.KeyboardEvent<HTMLInputElement>) => {
+    if (e.key === 'Enter' && !e.shiftKey) {
+      e.preventDefault();
+      handleSubmit();
+    }
+  };
+  
   return (
     <div className="flex flex-col h-full">
       {/* Chat messages */}
@@ -149,19 +172,20 @@ export default function ChatInterface() {
       </div>
       
       {/* Input form */}
-      <form
-        onSubmit={handleSubmit}
-        className="border-t p-4 bg-background"
-      >
+      <div className="border-t p-4 bg-background">
         <div className="flex space-x-2">
           <Input
             value={input}
             onChange={(e) => setInput(e.target.value)}
+            onKeyDown={handleKeyDown}
             placeholder="Ask a question about your documents..."
             disabled={isProcessing}
             className="flex-1"
           />
-          <Button type="submit" disabled={isProcessing || !input.trim()}>
+          <Button 
+            onClick={() => handleSubmit()} 
+            disabled={isProcessing || !input.trim()}
+          >
             {isProcessing ? (
               'Thinking...'
             ) : (
@@ -176,7 +200,7 @@ export default function ChatInterface() {
           <CornerDownLeft className="h-3 w-3 mr-1" />
           Press Enter to send your message
         </div>
-      </form>
+      </div>
     </div>
   );
 }
