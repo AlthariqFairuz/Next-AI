@@ -1,40 +1,10 @@
 import { supabase } from '@/lib/supabase';
-import * as pdfjs from 'pdfjs-dist';
+import { extractTextFromUrl } from '@/lib/pdfWrapper';
 import { getVectorStore } from './vectorstore';
 
-// Initialize PDF.js
-pdfjs.GlobalWorkerOptions.workerSrc = `//cdnjs.cloudflare.com/ajax/libs/pdf.js/${pdfjs.version}/pdf.worker.min.js`;
-
-// Extract text from PDF
+// Extract text from PDF using our safe wrapper
 export const extractTextFromPdf = async (pdfUrl: string): Promise<string> => {
-  try {
-    const response = await fetch(pdfUrl);
-    const pdfBuffer = await response.arrayBuffer();
-    
-    // Load the PDF document
-    const loadingTask = pdfjs.getDocument({ data: pdfBuffer });
-    const pdf = await loadingTask.promise;
-    
-    let extractedText = '';
-    
-    // Iterate through each page
-    for (let i = 1; i <= pdf.numPages; i++) {
-      const page = await pdf.getPage(i);
-      const textContent = await page.getTextContent();
-      
-      // Extract text items
-      const pageText = textContent.items
-        .map(item => 'str' in item ? item.str : '')
-        .join(' ');
-      
-      extractedText += pageText + '\n\n';
-    }
-    
-    return extractedText;
-  } catch (error) {
-    console.error('Error extracting text from PDF:', error);
-    throw new Error('Failed to extract text from PDF');
-  }
+  return extractTextFromUrl(pdfUrl);
 };
 
 // Split text into chunks for embedding

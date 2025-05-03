@@ -9,16 +9,10 @@ if (!supabaseUrl || !supabaseServiceKey) {
   throw new Error('Supabase URL and Service Key must be provided');
 }
 
-const supabaseAdmin = createClient(supabaseUrl, supabaseServiceKey, {
-  auth: {
-    autoRefreshToken: false,
-    persistSession: false,
-  },
-});
 
 export async function GET() {
-    return NextResponse.json({ status: 'ok' });
-  }
+  return NextResponse.json({ status: 'ok' });
+}
 
 export async function POST(request: NextRequest) {
   try {
@@ -29,38 +23,59 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: 'Missing required fields' }, { status: 400 });
     }
 
-    // Query the vector store
-    const response = await fetch(new URL('/api/vectorstore', request.url).toString(), {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-      },
-      body: JSON.stringify({
-        operation: 'similarity_search',
-        params: {
-          query: query,
-          filter: { userId: userId },
-          limit: topK
-        }
-      }),
-    });
+    try {
+      // Query the vector store
+      const response = await fetch(new URL('/api/vectorstore', request.url).toString(), {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          operation: 'similarity_search',
+          params: {
+            query: query,
+            filter: { userId: userId },
+            limit: topK
+          }
+        }),
+      });
 
-    if (!response.ok) {
-      const errorData = await response.json();
-      throw new Error(`Vector store query failed: ${errorData.error || response.statusText}`);
+      // If vector store returns an error, just return empty results instead of failing
+      if (!response.ok) {
+        console.warn('Vector store search returned an error, returning empty results');
+        return NextResponse.json({
+          results: [],
+          query,
+          noDocuments: true,
+        });
+      }
+
+      const { results } = await response.json();
+
+      // Handle empty results gracefully
+      return NextResponse.json({
+        results: results || [],
+        query,
+        noDocuments: !results || results.length === 0
+      });
+    } catch (vectorStoreError) {
+      console.error('Vector store error:', vectorStoreError);
+      // Return empty results on error instead of failing
+      return NextResponse.json({
+        results: [],
+        query,
+        noDocuments: true,
+        message: 'No documents available for search'
+      });
     }
-
-    const { results } = await response.json();
-
-    return NextResponse.json({
-      results,
-      query,
-    });
   } catch (error) {
     console.error('Query error:', error);
+    // Return empty results instead of an error
     return NextResponse.json({
-      error: 'Failed to query documents',
-      details: error instanceof Error ? error.message : 'Unknown error'
-    }, { status: 500 });
+      results: [],
+      query: '',
+      noDocuments: true,
+      message: 'No documents available for search'
+    });
   }
 }

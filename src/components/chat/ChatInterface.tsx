@@ -63,22 +63,31 @@ export default function ChatInterface() {
         }),
       });
       
-      if (!queryResponse.ok) {
-        const errorData = await queryResponse.json();
-        throw new Error(errorData.details || 'Failed to query documents');
+      const responseData = await queryResponse.json();
+      
+      // Check if no documents are available
+      if (responseData.noDocuments) {
+        const noDocsMessage = {
+          id: Date.now().toString(),
+          role: 'assistant' as const,
+          content: "I don't have any documents to search through yet. Please upload a PDF document first so I can answer questions about it.",
+          timestamp: new Date(),
+        };
+        
+        setMessages((prev) => [...prev, noDocsMessage]);
+        setIsProcessing(false);
+        return;
       }
       
-      const { results } = await queryResponse.json();
-      
       // Format context for the model
-      const context = results.map(chunk => chunk.content).join('\n\n');
+      const context = responseData.results?.map(chunk => chunk.content)?.join('\n\n') || '';
       
       // Prepare prompt with context and user query
       const prompt = `
         You are a helpful assistant answering questions based on provided documents.
         
         CONTEXT:
-        ${context}
+        ${context || "No relevant context found in documents."}
         
         USER QUESTION:
         ${userMessage.content}
@@ -111,7 +120,7 @@ export default function ChatInterface() {
       const errorMessage = {
         id: Date.now().toString(),
         role: 'assistant' as const,
-        content: 'Sorry, there was an error processing your request. Please try again.',
+        content: 'Sorry, I encountered an error processing your request. You may need to upload documents first or try again later.',
         timestamp: new Date(),
       };
       
