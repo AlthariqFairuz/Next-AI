@@ -7,26 +7,20 @@ import { Card, CardHeader, CardContent, CardFooter, CardTitle } from "@/componen
 import { toast } from "sonner";
 import { Send, Bot, User, RotateCcw } from "lucide-react";
 import { createBrowserClient } from "@supabase/ssr";
+import { Message } from "@/types/MessageProps";
+import ConfirmDialog from './ConfirmDialog';
 
-interface Message {
-  id?: string;
-  role: 'user' | 'assistant';
-  message: string; 
-  sources?: string[];
-  created_at?: string;
-  isTyping?: boolean;
-}
 
 export default function ChatInterface({ userId }: { userId: string }) {
   const [messages, setMessages] = useState<Message[]>([]);
   const [input, setInput] = useState('');
   const [isLoading, setIsLoading] = useState(false);
   const [isLoadingHistory, setIsLoadingHistory] = useState(false);
+  const [confirmDialogOpen, setConfirmDialogOpen] = useState(false);
   
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const inputRef = useRef<HTMLInputElement>(null);
   
-
   const supabase = createBrowserClient(
     process.env.SUPABASE_URL!,
     process.env.SUPABASE_ANON_KEY!
@@ -38,7 +32,6 @@ export default function ChatInterface({ userId }: { userId: string }) {
       inputRef.current.focus();
     }
   }, []);
-  
 
   useEffect(() => {
     async function loadChatHistory() {
@@ -126,28 +119,6 @@ export default function ChatInterface({ userId }: { userId: string }) {
     }
   }
   
-  async function clearChatHistory() {
-    if (!confirm('Are you sure you want to clear your chat history?')) return;
-    
-    setIsLoading(true);
-    try {
-      const { error } = await supabase
-        .from('chat_history')
-        .delete()
-        .eq('user_id', userId);
-      
-      if (error) throw error;
-      
-      setMessages([]);
-      toast.success('Chat history cleared');
-    } catch (error: unknown) {
-      console.error('Error clearing chat history:', error);
-      toast.error('Could not clear chat history');
-    } finally {
-      setIsLoading(false);
-    }
-  }
-  
   async function handleSendMessage(e: React.FormEvent) {
     e.preventDefault();
     
@@ -204,19 +175,19 @@ export default function ChatInterface({ userId }: { userId: string }) {
       
       const data = await response.json();
       
-      // Create AI response
+      // create ai response
       const newAIMessage: Message = { 
         role: 'assistant', 
         message: data.response,
         sources: data.sources || []
       };
       
-      // Replace the loading message with the real response
+      // replace the loading message with the real response
       setMessages(prev => prev.map((msg, idx) => 
         idx === prev.length - 1 && msg.isTyping ? newAIMessage : msg
       ));
       
-      // Save AI response to database
+      // save AI response to db
       await saveChatMessage(newAIMessage);
       
     } catch (error: unknown) {
@@ -237,6 +208,33 @@ export default function ChatInterface({ userId }: { userId: string }) {
       setIsLoading(false);
     }
   }
+
+    // Open the confirmation dialog
+    function handleClearHistoryClick() {
+      setConfirmDialogOpen(true);
+    }
+    
+    // Execute the actual history clearing operation
+    async function doClearChatHistory() {
+      setIsLoading(true);
+      try {
+        const { error } = await supabase
+          .from('chat_history')
+          .delete()
+          .eq('user_id', userId);
+        
+        if (error) throw error;
+        
+        setMessages([]);
+        toast.success('Chat history cleared');
+      } catch (error: unknown) {
+        console.error('Error clearing chat history:', error);
+        toast.error('Could not clear chat history');
+      } finally {
+        setIsLoading(false);
+        setConfirmDialogOpen(false);
+      }
+    }
   
   return (
     <Card className="bg-gradient-to-b from-gray-900 to-black border-gray-800 rounded-lg shadow-xl text-foreground h-[calc(100vh-8rem)] md:h-[calc(100vh-10rem)] flex flex-col animate-fade-in transition-all duration-300 hover:shadow-2xl">
@@ -246,17 +244,17 @@ export default function ChatInterface({ userId }: { userId: string }) {
           Chat with Your Documents
         </CardTitle>
         {messages.length > 0 && (
-          <Button
-            variant="ghost"
-            size="sm"
-            onClick={clearChatHistory}
-            disabled={isLoading || isLoadingHistory}
-            className="h-8 gap-1 text-xs hover:bg-gray-800/50 transition-all"
-          >
-            <RotateCcw className="h-3 w-3" />
-            Clear History
-          </Button>
-        )}
+            <Button
+              variant="ghost"
+              size="sm"
+              onClick={handleClearHistoryClick}
+              disabled={isLoading || isLoadingHistory}
+              className="h-8 gap-1 text-xs hover:bg-gray-800/50 transition-all"
+            >
+              <RotateCcw className="h-3 w-3" />
+              Clear History
+            </Button>
+          )}
       </CardHeader>
       
       <CardContent className="flex-1 overflow-y-auto p-4 space-y-4 scroll-smooth">
@@ -362,6 +360,14 @@ export default function ChatInterface({ userId }: { userId: string }) {
           </Button>
         </form>
       </CardFooter>
+
+      <ConfirmDialog
+        isOpen={confirmDialogOpen}
+        onConfirm={doClearChatHistory}
+        onCancel={() => setConfirmDialogOpen(false)}
+        title="Clear Chat History"
+        message="Are you sure you want to clear your chat history? This action cannot be undone."
+      />
       
       {/* Animation styles */}
       <style jsx global>{`

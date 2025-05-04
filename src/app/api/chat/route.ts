@@ -44,10 +44,8 @@ export async function POST(request: Request) {
     if (docsError) {
       console.error("Error checking documents:", docsError);
     }
-    
-    
-    // Query relevant documents from vector DB with more detailed error handling
-    console.log("Querying documents for:", userId);
+
+    // console.log("Querying documents for:", userId);
     const results = await queryDocuments(message, userId);
     console.log("Search results:", JSON.stringify(results, null, 2));
     
@@ -70,7 +68,6 @@ export async function POST(request: Request) {
     //   )
     // )];
     
-    // Construct the prompt with context
     const prompt = `
       You are an AI assistant for question-answering on documents. Your model is ${modelId}.
       You have access to the following context from the user's documents. 

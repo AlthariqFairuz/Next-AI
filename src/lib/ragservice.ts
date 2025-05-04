@@ -1,4 +1,3 @@
-// src/lib/ragservice.ts (updated)
 import { CohereEmbeddings } from "@langchain/cohere";
 import { PDFLoader } from "@langchain/community/document_loaders/fs/pdf";
 import { RecursiveCharacterTextSplitter } from "langchain/text_splitter";

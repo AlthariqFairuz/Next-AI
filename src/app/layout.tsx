@@ -16,10 +16,10 @@ const geistMono = Geist_Mono({
 });
 
 export const metadata: Metadata = {
-  title: "NEXT AI",
+  title: "Next AI",
   description: "Document RAG system with various AI models",
   icons: {
-    icon: "/icon512.png",
+    icon: "/icon.png",
     shortcut: "/icon.png",
   },
 };
