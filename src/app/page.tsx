@@ -1,25 +1,22 @@
-// pages/index.jsx
 "use client";
-import React, { useEffect, useRef, useState } from 'react';
+import React, { useEffect, useRef } from 'react';
 import Link from 'next/link';
-import { ChevronRight, ArrowRight, Code, Layers, Zap, Database, Upload, MessageSquare, Sparkles  } from 'lucide-react';
+import { ArrowRight, Database, Upload, MessageSquare, Sparkles  } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import Navbar from '@/components/Navbar';
 import { useAuth } from '@/context/AuthContext';
+import Footer from '@/components/Footer';
 
 export default function Home() {
-  const heroRef = useRef(null);
-  const featuresRef = useRef(null);
-  const [isDarkMode, setIsDarkMode] = useState(true);
+  const heroRef = useRef<HTMLDivElement>(null);
+  const featuresRef = useRef<HTMLDivElement>(null);
   
   useEffect(() => {
-    // Animate hero section on page load
     const heroElement = heroRef.current;
     if (heroElement) {
       heroElement.classList.add("animate-fade-in");
     }
 
-    // Animate features with staggered delay when visible
     const observer = new IntersectionObserver(
       (entries) => {
         entries.forEach((entry) => {
@@ -39,22 +36,19 @@ export default function Home() {
       { threshold: 0.2 }
     );
 
-    if (featuresRef.current) {
-      observer.observe(featuresRef.current);
+    const currentFeaturesRef = featuresRef.current;
+    if (currentFeaturesRef) {
+      observer.observe(currentFeaturesRef);
     }
 
     return () => {
-      if (featuresRef.current) {
-        observer.unobserve(featuresRef.current);
+      if (currentFeaturesRef) {
+        observer.unobserve(currentFeaturesRef);
       }
     };
   }, []);
 
-  const toggleTheme = () => {
-    setIsDarkMode(!isDarkMode);
-  };
 
-  // Use the auth context
   const { user } = useAuth();
 
   return (
@@ -214,28 +208,7 @@ export default function Home() {
         </section>
       </main>
 
-      <footer className="bg-background border-t border-gray-800">
-        <div className="mx-auto max-w-7xl px-4 py-12 sm:px-6 lg:px-8">
-          <div className="flex flex-col md:flex-row justify-between items-center gap-6">
-            <div className="flex items-center gap-2">
-              <div className="relative w-6 h-6">
-                <div className="absolute inset-0 bg-gradient-to-r from-purple-500 to-blue-500 rounded-full"></div>
-                <div className="absolute inset-1 bg-black rounded-full"></div>
-              </div>
-              <span className="text-lg font-bold bg-clip-text text-transparent bg-gradient-to-r from-white to-gray-400">NEXT AI</span>
-            </div>
-            <div className="flex flex-wrap justify-center gap-x-8 gap-y-4">
-              <a href="#features" className="text-sm text-muted-foreground hover:text-foreground transition-colors">Features</a>
-              <a href="#" className="text-sm text-muted-foreground hover:text-foreground transition-colors">Documentation</a>
-              <a href="#" className="text-sm text-muted-foreground hover:text-foreground transition-colors">Blog</a>
-              <a href="#" className="text-sm text-muted-foreground hover:text-foreground transition-colors">Support</a>
-            </div>
-            <p className="text-sm text-muted-foreground">
-              &copy; 2025 NEXT AI. All rights reserved.
-            </p>
-          </div>
-        </div>
-      </footer>
+      <Footer/>
 
       {/* Add global CSS */}
       <style jsx global>{`

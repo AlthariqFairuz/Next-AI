@@ -7,12 +7,12 @@ const Navbar = () => {
   const { user, signOut } = useAuth();
 
   return (
-    <header className="sticky top-0 z-40 w-full backdrop-blur-md bg-background/95 border-b bg-black/70">
+    <header className="sticky top-0 z-40 w-full backdrop-blur-md border-b bg-black/70">
       <div className="container flex h-14 items-center max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="mr-4 flex">
           <Link href="/" className="flex items-center gap-2">
             <div className="relative w-8 h-8">
-              <div className="absolute inset-0 bg-gradient-to-r from-purple-500 to-blue-500 rounded-full animate-pulse"></div>
+              <div className="absolute inset-0 bg-gradient-to-r from-white to-black rounded-full animate-pulse"></div>
               <div className="absolute inset-1 bg-black rounded-full"></div>
             </div>
             <span className="text-xl font-bold bg-clip-text text-transparent bg-gradient-to-r from-white to-gray-400">NEXT AI</span>
