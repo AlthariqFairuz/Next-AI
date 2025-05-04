@@ -44,7 +44,7 @@ export async function POST(request: Request) {
       { auth: { persistSession: false } }
     );
     
-    // Generate file URL - grab this from storage
+    // Generate file URL
     const fileUrl = `${process.env.NEXT_PUBLIC_SUPABASE_URL}/storage/v1/object/public/pdfs/${userId}/${file.name}`;
     
     // 1. Insert document metadata
@@ -85,10 +85,11 @@ export async function POST(request: Request) {
       message: "Document processed successfully",
     });
     
-  } catch (error: any) {
+  } catch (error: Error | unknown) {
     console.error("Error processing PDF:", error);
+    const errorMessage = error instanceof Error ? error.message : "Failed to process PDF";
     return NextResponse.json(
-      { error: error.message || "Failed to process PDF" },
+      { error: errorMessage },
       { status: 500 }
     );
   }

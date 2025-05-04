@@ -8,7 +8,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Card, CardHeader, CardContent, CardFooter, CardTitle, CardDescription } from "@/components/ui/card";
 import { toast } from "sonner";
-import { FileText, UserPlus } from "lucide-react";
+import { UserPlus } from "lucide-react";
 import Navbar from "@/components/Navbar";
 import Footer from "@/components/Footer";
 
@@ -40,7 +40,7 @@ export default function RegisterPage() {
     setIsLoading(true);
 
     try {
-      const { data, error } = await supabase.auth.signUp({
+      const { error } = await supabase.auth.signUp({
         email,
         password,
       });
@@ -51,8 +51,9 @@ export default function RegisterPage() {
 
       toast.success("Registration successful! Please check your email for verification.");
       router.push("/login");
-    } catch (error: any) {
-      toast.error(error.message || "Failed to register");
+    } catch (error: Error | unknown) {
+      const errorMessage = error instanceof Error ? error.message : "Failed to register";
+      toast.error(errorMessage);
     } finally {
       setIsLoading(false);
     }

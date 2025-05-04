@@ -1,7 +1,7 @@
 import { NextResponse } from "next/server";
 import { queryDocuments } from "@/lib/ragservice";
 import OpenAI from "openai";
-import { createClient } from "@supabase/supabase-js";
+// import { createClient } from "@supabase/supabase-js";
 
 const openRouter = new OpenAI({
   apiKey: process.env.NEXT_PUBLIC_OPENROUTER_API_KEY || "",
@@ -9,11 +9,11 @@ const openRouter = new OpenAI({
 });
 
 // Admin client to check documents
-const supabaseAdmin = createClient(
-  process.env.NEXT_PUBLIC_SUPABASE_URL!,
-  process.env.NEXT_PUBLIC_SUPABASE_ROLE_KEY!,
-  { auth: { persistSession: false } }
-);
+// const supabaseAdmin = createClient(
+//   process.env.NEXT_PUBLIC_SUPABASE_URL!,
+//   process.env.NEXT_PUBLIC_SUPABASE_ROLE_KEY!,
+//   { auth: { persistSession: false } }
+// );
 
 export async function POST(request: Request) {
   try {
@@ -26,22 +26,22 @@ export async function POST(request: Request) {
       );
     }
     
-    // Check if user has documents
-    const { data: docs, error: docsError } = await supabaseAdmin
-      .from("documents")
-      .select("id")
-      .eq("user_id", userId);
+    // // Check if user has documents
+    // const { data: docs, error: docsError } = await supabaseAdmin
+    //   .from("documents")
+    //   .select("id")
+    //   .eq("user_id", userId);
       
-    if (docsError) {
-      console.error("Error checking documents:", docsError);
-    }
+    // if (docsError) {
+    //   console.error("Error checking documents:", docsError);
+    // }
     
-    if (!docs || docs.length === 0) {
-      return NextResponse.json({
-        response: "Please upload some documents first before asking questions.",
-        sources: []
-      });
-    }
+    // if (!docs || docs.length === 0) {
+    //   return NextResponse.json({
+    //     response: "Please upload some documents first before asking questions.",
+    //     sources: []
+    //   });
+    // }
     
     // Query relevant documents from vector DB with more detailed error handling
     console.log("Querying documents for:", userId);
@@ -57,15 +57,15 @@ export async function POST(request: Request) {
     
     // Extract relevant context from the results
     const context = results.matches
-      .map((match) => match.metadata.text)
+      .map((match) => match.metadata?.text || '')
       .join("\n\n");
     
-    // Create sources list for citation
-    const sources = [...new Set(
-      results.matches.map((match) => 
-        `Document-${match.metadata.documentId.substring(0, 8)}`
-      )
-    )];
+    // // Create sources list for citation
+    // const sources = [...new Set(
+    //   results.matches.map((match) => 
+    //     `Document-${match.metadata.documentId.substring(0, 8)}`
+    //   )
+    // )];
     
     // Construct the prompt with context
     const prompt = `
@@ -84,7 +84,7 @@ export async function POST(request: Request) {
     const completion = await openRouter.chat.completions.create({
       model: "deepseek/deepseek-r1-distill-qwen-14b:free",
       messages: [{ role: "user", content: prompt }],
-      temperature: 0.1,
+      temperature: 0.5,
       max_tokens: 1000,
     });
     
@@ -92,14 +92,14 @@ export async function POST(request: Request) {
       "Sorry, I couldn't generate a response.";
     
     return NextResponse.json({
-      response,
-      sources,
+      response
     });
     
-  } catch (error: any) {
+  } catch (error: Error | unknown) {
     console.error("Error in chat API:", error);
+    const errorMessage = error instanceof Error ? error.message : "Failed to process chat request";
     return NextResponse.json(
-      { error: error.message || "Failed to process chat request" },
+      { error: errorMessage },
       { status: 500 }
     );
   }

@@ -8,7 +8,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Card, CardHeader, CardContent, CardFooter, CardTitle, CardDescription } from "@/components/ui/card";
 import { toast } from "sonner";
-import { FileText, LogIn } from "lucide-react";
+import { LogIn } from "lucide-react";
 import Navbar from "@/components/Navbar";
 import Footer from "@/components/Footer";
 
@@ -38,7 +38,7 @@ export default function LoginPage() {
     );
 
     try {
-      const { data, error } = await supabase.auth.signInWithPassword({
+      const { error } = await supabase.auth.signInWithPassword({
         email,
         password,
       });
@@ -50,8 +50,9 @@ export default function LoginPage() {
       toast.success("Login successful!");
       router.refresh();
       router.push("/dashboard");
-    } catch (error: any) {
-      toast.error(error.message || "Failed to login");
+    } catch (error: Error | unknown) {
+      const errorMessage = error instanceof Error ? error.message : "Failed to process PDF";
+      toast.error(errorMessage);
     } finally {
       setIsLoading(false);
     }

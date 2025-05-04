@@ -4,7 +4,6 @@ import { useState, useEffect } from "react";
 import { useAuth } from "@/context/AuthContext";
 import { supabase } from "@/lib/supabase";
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
-import { Button } from "@/components/ui/button";
 import FileUpload from "@/components/FileUpload";
 import ChatInterface from "@/components/ChatInterface";
 import { toast } from "sonner";
@@ -42,8 +41,9 @@ export default function Dashboard() {
 
       if (error) throw error;
       setDocuments(data || []);
-    } catch (error: any) {
-      toast.error("Error fetching documents: " + error.message);
+    } catch (error: Error | unknown) {
+      const message = error instanceof Error ? error.message : 'Unknown error occurred';
+      toast.error("Error fetching documents: " + message);
     } finally {
       setIsLoading(false);
     }

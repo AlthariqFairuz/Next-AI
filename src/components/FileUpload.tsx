@@ -3,7 +3,6 @@
 import { useState, useRef, useEffect } from 'react';
 import { createBrowserClient } from '@supabase/ssr';
 import { Card, CardHeader, CardContent, CardTitle } from "@/components/ui/card";
-import { Button } from "@/components/ui/button";
 import { toast } from "sonner";
 import { Upload, Loader2, FileIcon, CheckCircle2 } from "lucide-react";
 
@@ -75,11 +74,6 @@ export default function FileUpload({ userId, onUpload }: FileUploadProps) {
         throw new Error(`Upload failed: ${uploadError.message}`);
       }
       
-      // 2. Get public URL
-      const { data: { publicUrl } } = supabase.storage
-        .from('pdfs')
-        .getPublicUrl(filePath);
-      
       setProgress(40);
       
       // 3. Process the PDF for RAG
@@ -108,9 +102,9 @@ export default function FileUpload({ userId, onUpload }: FileUploadProps) {
       
       if (onUpload) onUpload();
       
-    } catch (error: any) {
+    } catch (error: unknown) {
       console.error('Error uploading file:', error);
-      toast.error(error.message);
+      toast.error(error instanceof Error ? error.message : 'An unknown error occurred');
     } finally {
       setTimeout(() => {
         setUploading(false);

@@ -59,7 +59,7 @@ export default function ChatInterface({ userId }: { userId: string }) {
           
           setMessages(formattedMessages);
         }
-      } catch (error: any) {
+      } catch (error: unknown) {
         console.error('Error fetching chat history:', error);
         toast.error('Could not load chat history');
       } finally {
@@ -105,7 +105,7 @@ export default function ChatInterface({ userId }: { userId: string }) {
       
       return data;
       
-    } catch (error: any) {
+    } catch (error: unknown) {
       console.error('Error saving chat message:', error);
       toast.error('Failed to save message');
       return null;
@@ -126,7 +126,7 @@ export default function ChatInterface({ userId }: { userId: string }) {
       
       setMessages([]);
       toast.success('Chat history cleared');
-    } catch (error: any) {
+    } catch (error: unknown) {
       console.error('Error clearing chat history:', error);
       toast.error('Could not clear chat history');
     } finally {
@@ -186,7 +186,7 @@ export default function ChatInterface({ userId }: { userId: string }) {
       // Save AI response to database
       await saveChatMessage(newAIMessage);
       
-    } catch (error: any) {
+    } catch (error: unknown) {
       console.error('Error:', error);
       toast.error("Couldn't get a response. Please try again.");
       

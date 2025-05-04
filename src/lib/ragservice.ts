@@ -1,14 +1,16 @@
+// src/lib/ragservice.ts (updated)
 import { CohereEmbeddings } from "@langchain/cohere";
 import { PDFLoader } from "@langchain/community/document_loaders/fs/pdf";
 import { RecursiveCharacterTextSplitter } from "langchain/text_splitter";
 import { Pinecone } from "@pinecone-database/pinecone";
 
-
+// Initialize Cohere embeddings
 const embeddings = new CohereEmbeddings({
   apiKey: process.env.COHERE_API_KEY,
   model: "embed-multilingual-v3.0"
 });
 
+// Initialize vector database
 const pinecone = new Pinecone({
   apiKey: process.env.PINECONE_API_KEY!,
 });
