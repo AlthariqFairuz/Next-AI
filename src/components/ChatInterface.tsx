@@ -177,6 +177,7 @@ export default function ChatInterface({ userId }: { userId: string }) {
           message: userMessage,
           userId,
           modelId: selectedModel,
+          modelName: MODEL_OPTIONS.find(m => m.id === selectedModel)?.name || 'Unknown',
         }),
       });
       

@@ -17,7 +17,7 @@ const supabaseAdmin = createClient(
 
 export async function POST(request: Request) {
   try {
-    const { message, userId, modelId } = await request.json();
+    const { message, userId, modelId, modelName } = await request.json();
     
     if (!message || !userId) {
       return NextResponse.json(
@@ -64,7 +64,7 @@ export async function POST(request: Request) {
     const modelToUse = modelId || "meta-llama/llama-4-scout:free";
     
     const prompt = `
-      You are an AI assistant for question-answering on documents. Your model is ${modelToUse}.
+      You are an AI assistant for question-answering on documents. Your model is ${modelName}.
       You have access to the following context from the user's documents. 
       Answer the question based on the context below unless the user say otherwise. If you cannot find
       the answer in the context or there is no context provided, 
@@ -79,7 +79,7 @@ export async function POST(request: Request) {
     
     // Get response from OpenRouter 
     const completion = await openRouter.chat.completions.create({
-      model: modelId,
+      model: modelToUse,
       messages: [{ role: "user", content: prompt }],
       temperature: 0.2,
       max_tokens: 1000,

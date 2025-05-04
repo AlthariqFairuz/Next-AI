@@ -9,19 +9,13 @@ import ChatInterface from "@/components/ChatInterface";
 import { toast } from "sonner";
 import { FileText, ChevronRight, CircleHelp } from "lucide-react";
 import Navbar from "@/components/Navbar";
-import Footer from "@/components/Footer";
 import { SupabaseClient } from "@supabase/supabase-js";
+import { DocumentProps } from "@/types/DocumentProps";
 
-interface Document {
-  id: string;
-  name: string;
-  url: string;
-  created_at: string;
-}
 
 export default function Dashboard() {
   const { user } = useAuth();
-  const [documents, setDocuments] = useState<Document[]>([]);
+  const [documents, setDocuments] = useState<DocumentProps[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [activeTab, setActiveTab] = useState<string>("chat");
   const [supabaseClient, setSupabaseClient] = useState<SupabaseClient | null>(null);
@@ -255,7 +249,6 @@ export default function Dashboard() {
         </div>
       </main>
 
-      <Footer />
 
       {/* Global CSS for consistent animations */}
       <style jsx global>{`
