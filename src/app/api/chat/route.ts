@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 import { queryDocuments } from "@/lib/ragservice";
 import OpenAI from "openai";
+import { supabase } from "@/lib/supabase";
 // import { createClient } from "@supabase/supabase-js";
 
 const openRouter = new OpenAI({
@@ -31,6 +32,14 @@ export async function POST(request: Request) {
     //   .from("documents")
     //   .select("id")
     //   .eq("user_id", userId);
+
+    const { data: userPrefs } = await supabase
+    .from('user_preferences')
+    .select('model_id')
+    .eq('user_id', userId)
+    .single();
+
+    const modelId = userPrefs?.model_id || "meta-llama/llama-4-scout:free";
       
     // if (docsError) {
     //   console.error("Error checking documents:", docsError);
@@ -69,9 +78,11 @@ export async function POST(request: Request) {
     
     // Construct the prompt with context
     const prompt = `
-      You are an AI assistant for question-answering on documents. 
-      Answer the question based on the context below. If you cannot find
-      the answer in the context, give a warning to user that you don't know about the context and answer as much as you can."
+      You are an AI assistant for question-answering on documents. Your model is ${modelId}.
+      You have access to the following context from the user's documents. 
+      Answer the question based on the context below unless the user say otherwise. If you cannot find
+      the answer in the context or there is no context provided, 
+      give a warning to user that you are unsure and answer based on your knowledge or your assumption."
 
       Context:
       ${context}
@@ -80,9 +91,9 @@ export async function POST(request: Request) {
 
       Answer:`;
     
-    // Get response from OpenRouter (using DeepSeek model)
+    // Get response from OpenRouter 
     const completion = await openRouter.chat.completions.create({
-      model: "deepseek/deepseek-r1-distill-qwen-14b:free",
+      model: modelId,
       messages: [{ role: "user", content: prompt }],
       temperature: 0.5,
       max_tokens: 1000,

@@ -4,12 +4,19 @@ import { useState, useRef, useEffect } from 'react';
 import { createBrowserClient } from '@supabase/ssr';
 import { Card, CardHeader, CardContent, CardTitle } from "@/components/ui/card";
 import { toast } from "sonner";
-import { Upload, Loader2, FileIcon, CheckCircle2 } from "lucide-react";
+import { Upload, Loader2, FileIcon, CheckCircle2, Sparkles } from "lucide-react";
 
 interface FileUploadProps {
   userId: string;
   onUpload?: () => void;
 }
+
+const MODEL_OPTIONS = [
+  { id: "deepseek/deepseek-r1:free", name: "DeepSeek-R1", description: "Ultimate Model for Complex Tasks" },
+  { id: "meta-llama/llama-4-scout:free", name: "Llama 4 Scout", description: "Open source, highly capable" },
+  { id: "mistralai/mistral-small-3.1-24b-instruct:free", name: "Mistral Small 3.1", description: "Perfect for Everyday Task" }
+];
+
 
 export default function FileUpload({ userId, onUpload }: FileUploadProps) {
   const [uploading, setUploading] = useState(false);
@@ -17,6 +24,7 @@ export default function FileUpload({ userId, onUpload }: FileUploadProps) {
   const [progress, setProgress] = useState(0);
   const [dragActive, setDragActive] = useState(false);
   const [success, setSuccess] = useState(false);
+  const [selectedModel, setSelectedModel] = useState(MODEL_OPTIONS[1].id);
   const fileInputRef = useRef<HTMLInputElement>(null);
   
   // Use createBrowserClient to ensure we have the latest auth cookies
@@ -24,6 +32,11 @@ export default function FileUpload({ userId, onUpload }: FileUploadProps) {
     process.env.NEXT_PUBLIC_SUPABASE_URL!,
     process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
   );
+
+  function handleModelSelect(modelId: string) {
+    setSelectedModel(modelId);
+    toast.success(`Model changed to ${MODEL_OPTIONS.find(m => m.id === modelId)?.name}`);
+  }
   
   // Reset success state after animation completes
   useEffect(() => {
@@ -81,6 +94,7 @@ export default function FileUpload({ userId, onUpload }: FileUploadProps) {
       formData.append('file', file);
       formData.append('userId', userId);
       formData.append('documentName', file.name.replace(/\.[^/.]+$/, ""));
+      formData.append('modelId', selectedModel);
       
       setProgress(60);
       
@@ -150,13 +164,32 @@ export default function FileUpload({ userId, onUpload }: FileUploadProps) {
     <Card className="bg-gradient-to-b from-gray-900 to-black text-foreground rounded-lg border border-gray-800 shadow-xl hover:shadow-2xl hover:border-gray-700 transition-all animate-fade-in">
       <CardHeader className="px-4 py-3 border-b border-gray-800 flex flex-row items-center space-y-0">
         <CardTitle className="text-base font-medium flex items-center gap-2">
-          <Upload className="h-4 w-4" />
-          Upload PDF
+          <Sparkles className="h-4 w-4" />
+          Select AI Model
         </CardTitle>
       </CardHeader>
       
       <CardContent className="p-4">
         <div className="space-y-4">
+
+        {/* Model selection */}
+        <div className="grid grid-cols-2 gap-2">
+            {MODEL_OPTIONS.map((model) => (
+              <div
+                key={model.id}
+                className={`p-3 rounded-lg border cursor-pointer transition-all ${
+                  selectedModel === model.id 
+                    ? 'border-primary bg-primary/10' 
+                    : 'border-gray-700 hover:border-gray-600'
+                }`}
+                onClick={() => handleModelSelect(model.id)}
+              >
+                <div className="font-medium text-sm">{model.name}</div>
+                <div className="text-xs text-muted-foreground mt-1">{model.description}</div>
+              </div>
+            ))}
+        </div>
+
           <div 
             className={`border-2 border-dashed rounded-md p-6 text-center cursor-pointer transition-all duration-200 ${
               dragActive ? 'border-primary bg-primary/5 scale-105' : 'border-gray-700 hover:bg-gray-800/50'
