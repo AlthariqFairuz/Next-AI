@@ -1,8 +1,8 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useCallback } from "react";
 import { useAuth } from "@/context/AuthContext";
-import { createBrowserClient } from "@supabase/ssr"; // Use createBrowserClient instead
+import { createBrowserClient } from "@supabase/ssr";
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
 import FileUpload from "@/components/FileUpload";
 import ChatInterface from "@/components/ChatInterface";
@@ -10,6 +10,7 @@ import { toast } from "sonner";
 import { FileText, ChevronRight, CircleHelp } from "lucide-react";
 import Navbar from "@/components/Navbar";
 import Footer from "@/components/Footer";
+import { SupabaseClient } from "@supabase/supabase-js";
 
 interface Document {
   id: string;
@@ -23,7 +24,7 @@ export default function Dashboard() {
   const [documents, setDocuments] = useState<Document[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [activeTab, setActiveTab] = useState<string>("chat");
-  const [supabaseClient, setSupabaseClient] = useState<any>(null);
+  const [supabaseClient, setSupabaseClient] = useState<SupabaseClient | null>(null);
 
   useEffect(() => {
     const client = createBrowserClient(
@@ -33,13 +34,7 @@ export default function Dashboard() {
     setSupabaseClient(client);
   }, []);
 
-  useEffect(() => {
-    if (user && supabaseClient) {
-      fetchDocuments();
-    }
-  }, [user, supabaseClient]);
-
-  async function fetchDocuments() {
+  const fetchDocuments = useCallback(async () => {
     if (!user || !supabaseClient) return;
     
     setIsLoading(true);
@@ -62,7 +57,13 @@ export default function Dashboard() {
     } finally {
       setIsLoading(false);
     }
-  }
+  }, [user, supabaseClient]);
+
+  useEffect(() => {
+    if (user && supabaseClient) {
+      fetchDocuments();
+    }
+  }, [user, supabaseClient, fetchDocuments]);
 
   const handleDocumentUpload = () => {
     // Add a small delay to ensure the database has time to update
@@ -76,8 +77,8 @@ export default function Dashboard() {
       <Navbar />
 
       <main className="flex-1 container mx-auto px-4 py-6">
-        {/* Page heading with subtle animation */}
-        <div className="mb-6 animate-fade-in">
+        {/* Page heading with improved animation */}
+        <div className="mb-6 opacity-0 translate-y-4 animate-fade-in">
           <h1 className="text-2xl font-bold mb-2 bg-clip-text text-transparent bg-gradient-to-r from-white to-gray-400">
             Document Dashboard
           </h1>
@@ -86,36 +87,36 @@ export default function Dashboard() {
           </p>
         </div>
 
-        {/* Mobile tabs */}
+        {/* Mobile tabs with improved transitions */}
         <div className="md:hidden mb-6">
           <Tabs defaultValue="chat" value={activeTab} onValueChange={setActiveTab}>
-            <TabsList className="w-full grid grid-cols-2 bg-gray-900 p-1 rounded-lg border border-gray-800">
+            <TabsList className="w-full grid grid-cols-2 bg-gray-900/80 p-1 rounded-lg border border-gray-800 backdrop-blur-sm">
               <TabsTrigger 
                 value="chat" 
-                className="data-[state=active]:bg-gray-800 data-[state=active]:shadow-md rounded-md py-2"
+                className="data-[state=active]:bg-gray-800 data-[state=active]:shadow-md rounded-md py-2 transition-all duration-300 ease-out"
               >
                 Chat
               </TabsTrigger>
               <TabsTrigger 
                 value="documents"
-                className="data-[state=active]:bg-gray-800 data-[state=active]:shadow-md rounded-md py-2"
+                className="data-[state=active]:bg-gray-800 data-[state=active]:shadow-md rounded-md py-2 transition-all duration-300 ease-out"
               >
                 Documents
               </TabsTrigger>
             </TabsList>
             
-            <TabsContent value="chat" className="mt-4 animate-fade-in">
+            <TabsContent value="chat" className="mt-4 animate-slide-up">
               <ChatInterface userId={user?.id || ""} />
             </TabsContent>
             
-            <TabsContent value="documents" className="mt-4 animate-fade-in">
+            <TabsContent value="documents" className="mt-4 animate-slide-up">
               <div className="space-y-6">
                 <FileUpload
                   userId={user?.id || ""}
                   onUpload={handleDocumentUpload}
                 />
 
-                <div className="bg-gradient-to-b from-gray-900 to-black rounded-lg border border-gray-800 shadow-xl">
+                <div className="bg-gradient-to-b from-gray-900 to-black rounded-lg border border-gray-800 shadow-xl transition-all duration-300 hover:shadow-2xl hover:border-gray-700">
                   <div className="p-4 border-b border-gray-800 flex items-center justify-between">
                     <h2 className="text-lg font-medium flex items-center gap-2">
                       <FileText className="h-4 w-4" /> 
@@ -133,7 +134,7 @@ export default function Dashboard() {
                         <div className="animate-spin h-6 w-6 border-2 border-primary rounded-full border-t-transparent"></div>
                       </div>
                     ) : documents.length === 0 ? (
-                      <div className="text-center py-12 animate-fade-in">
+                      <div className="text-center py-12 animate-slide-up">
                         <div className="bg-gray-800/50 h-20 w-20 rounded-full flex items-center justify-center mx-auto mb-4">
                           <CircleHelp className="h-10 w-10 text-gray-500" />
                         </div>
@@ -143,11 +144,12 @@ export default function Dashboard() {
                         </p>
                       </div>
                     ) : (
-                      <ul className="space-y-3 animate-fade-in">
-                        {documents.map((doc) => (
+                      <ul className="grid gap-3 animate-slide-up">
+                        {documents.map((doc, index) => (
                           <li 
                             key={doc.id} 
-                            className="group flex items-center justify-between p-3 rounded-md border border-gray-800 bg-gray-900/50 hover:bg-gray-800 hover:border-gray-700 transition-colors"
+                            className="group flex items-center justify-between p-3 rounded-md border border-gray-800 bg-gray-900/50 hover:bg-gray-800 hover:border-gray-700 transition-all duration-300"
+                            style={{ animationDelay: `${index * 0.05}s` }}
                           >
                             <div className="min-w-0 flex-1">
                               <div className="flex items-center gap-2">
@@ -159,7 +161,7 @@ export default function Dashboard() {
                               </p>
                             </div>
                             <a
-                              href={`${process.env.NEXT_PUBLIC_SUPABASE_URL}/storage/v1/object/public/pdfs/${encodeURIComponent(doc.id)}/${encodeURIComponent(doc.name)}.pdf`}
+                              href={doc.url}
                               target="_blank"
                               rel="noopener noreferrer"
                               className="ml-2 p-2 rounded-full bg-gray-800 hover:bg-gray-700 transition-colors group-hover:bg-gray-700"
@@ -178,7 +180,7 @@ export default function Dashboard() {
           </Tabs>
         </div>
         
-        {/* Desktop layout */}
+        {/* Desktop layout with enhanced animations */}
         <div className="hidden md:grid md:grid-cols-3 gap-6">
           <div className="md:col-span-1 space-y-6">
             <FileUpload
@@ -186,7 +188,7 @@ export default function Dashboard() {
               onUpload={handleDocumentUpload}
             />
 
-            <div className="bg-gradient-to-b from-gray-900 to-black rounded-lg border border-gray-800 shadow-xl hover:shadow-2xl transition-all animate-fade-in">
+            <div className="bg-gradient-to-b from-gray-900 to-black rounded-lg border border-gray-800 shadow-xl hover:shadow-2xl transition-all duration-300 hover:border-gray-700">
               <div className="p-4 border-b border-gray-800 flex items-center justify-between">
                 <h2 className="text-lg font-medium flex items-center gap-2">
                   <FileText className="h-4 w-4" /> 
@@ -204,8 +206,8 @@ export default function Dashboard() {
                     <div className="animate-spin h-6 w-6 border-2 border-primary rounded-full border-t-transparent"></div>
                   </div>
                 ) : documents.length === 0 ? (
-                  <div className="text-center py-12 animate-fade-in">
-                    <div className="bg-gray-800/50 h-20 w-20 rounded-full flex items-center justify-center mx-auto mb-4">
+                  <div className="text-center py-12 animate-slide-up">
+                    <div className="bg-gray-800/50 h-20 w-20 rounded-full flex items-center justify-center mx-auto mb-4 animate-pulse-slow">
                       <CircleHelp className="h-10 w-10 text-gray-500" />
                     </div>
                     <p className="text-lg text-gray-300 mb-2">No documents yet</p>
@@ -214,11 +216,12 @@ export default function Dashboard() {
                     </p>
                   </div>
                 ) : (
-                  <ul className="space-y-3 animate-fade-in">
-                    {documents.map((doc) => (
+                  <ul className="grid gap-3 animate-slide-up">
+                    {documents.map((doc, index) => (
                       <li 
                         key={doc.id} 
-                        className="group flex items-center justify-between p-3 rounded-md border border-gray-800 bg-gray-900/50 hover:bg-gray-800 hover:border-gray-700 transition-colors"
+                        className="group flex items-center justify-between p-3 rounded-md border border-gray-800 bg-gray-900/50 hover:bg-gray-800 hover:border-gray-700 transition-all duration-300"
+                        style={{ animationDelay: `${index * 0.05}s` }}
                       >
                         <div className="min-w-0 flex-1">
                           <div className="flex items-center gap-2">
@@ -235,7 +238,7 @@ export default function Dashboard() {
                           rel="noopener noreferrer"
                           className="ml-2 p-2 rounded-full bg-gray-800 hover:bg-gray-700 transition-colors group-hover:bg-gray-700"
                         >
-                          <ChevronRight className="h-4 w-4" />
+                          <ChevronRight className="h-4 w-4 transition-transform group-hover:translate-x-1" />
                           <span className="sr-only">View Document</span>
                         </a>
                       </li>
@@ -246,7 +249,7 @@ export default function Dashboard() {
             </div>
           </div>
 
-          <div className="md:col-span-2">
+          <div className="md:col-span-2 opacity-0 animate-fade-in" style={{ animationDelay: '0.2s' }}>
             <ChatInterface userId={user?.id || ""} />
           </div>
         </div>
@@ -299,10 +302,26 @@ export default function Dashboard() {
           animation: bounce-gentle 1.5s ease-in-out infinite;
         }
         
+        @keyframes pulse-slow {
+          0%, 100% {
+            opacity: 0.6;
+            transform: scale(1);
+          }
+          50% {
+            opacity: 0.8;
+            transform: scale(1.05);
+          }
+        }
+        
+        .animate-pulse-slow {
+          animation: pulse-slow 2.5s ease-in-out infinite;
+        }
+        
         @media (prefers-reduced-motion: reduce) {
           .animate-fade-in,
           .animate-slide-up,
-          .animate-bounce-gentle {
+          .animate-bounce-gentle,
+          .animate-pulse-slow {
             animation: none !important;
           }
         }

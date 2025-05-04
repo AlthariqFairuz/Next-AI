@@ -14,6 +14,7 @@ interface Message {
   message: string; 
   sources?: string[];
   created_at?: string;
+  isTyping?: boolean;
 }
 
 export default function ChatInterface({ userId }: { userId: string }) {
@@ -23,14 +24,22 @@ export default function ChatInterface({ userId }: { userId: string }) {
   const [isLoadingHistory, setIsLoadingHistory] = useState(false);
   
   const messagesEndRef = useRef<HTMLDivElement>(null);
+  const inputRef = useRef<HTMLInputElement>(null);
   
-  // Create supabase client once
+
   const supabase = createBrowserClient(
     process.env.NEXT_PUBLIC_SUPABASE_URL!,
     process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
   );
   
-  // Fetch chat history on component mount
+
+  useEffect(() => {
+    if (inputRef.current) {
+      inputRef.current.focus();
+    }
+  }, []);
+  
+
   useEffect(() => {
     async function loadChatHistory() {
       if (!userId) return;
@@ -73,11 +82,16 @@ export default function ChatInterface({ userId }: { userId: string }) {
   // Auto-scroll to bottom when messages change
   useEffect(() => {
     if (messages.length > 0) {
-      setTimeout(() => {
-        messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
-      }, 100);
+      scrollToBottom('smooth');
     }
   }, [messages]);
+  
+  // Scroll to bottom function
+  const scrollToBottom = (behavior: ScrollBehavior = 'auto') => {
+    setTimeout(() => {
+      messagesEndRef.current?.scrollIntoView({ behavior });
+    }, 100);
+  };
   
   async function saveChatMessage(message: Message) {
     if (!userId) return null;
@@ -142,21 +156,38 @@ export default function ChatInterface({ userId }: { userId: string }) {
     const userMessage = input.trim();
     setInput('');
     
-    // Create user message
+
+    setTimeout(() => {
+      if (inputRef.current) {
+        inputRef.current.focus();
+      }
+    }, 100);
+    
+
     const newUserMessage: Message = { 
       role: 'user', 
       message: userMessage
     };
     
-    // Add user message to UI
+
     setMessages(prev => [...prev, newUserMessage]);
     
-    // Save user message to database
+
     await saveChatMessage(newUserMessage);
     
     setIsLoading(true);
     
     try {
+
+      const tempLoadingMessage: Message = {
+        role: 'assistant',
+        message: '',
+        isTyping: true
+      };
+      
+      setMessages(prev => [...prev, tempLoadingMessage]);
+      scrollToBottom('smooth');
+      
       // Call API for chat response
       const response = await fetch('/api/chat', {
         method: 'POST',
@@ -180,8 +211,10 @@ export default function ChatInterface({ userId }: { userId: string }) {
         sources: data.sources || []
       };
       
-      // Add AI response to UI
-      setMessages(prev => [...prev, newAIMessage]);
+      // Replace the loading message with the real response
+      setMessages(prev => prev.map((msg, idx) => 
+        idx === prev.length - 1 && msg.isTyping ? newAIMessage : msg
+      ));
       
       // Save AI response to database
       await saveChatMessage(newAIMessage);
@@ -189,6 +222,9 @@ export default function ChatInterface({ userId }: { userId: string }) {
     } catch (error: unknown) {
       console.error('Error:', error);
       toast.error("Couldn't get a response. Please try again.");
+      
+      // Remove loading message if there was an error
+      setMessages(prev => prev.filter(msg => !msg.isTyping));
       
       const errorMessage: Message = { 
         role: 'assistant', 
@@ -203,7 +239,7 @@ export default function ChatInterface({ userId }: { userId: string }) {
   }
   
   return (
-    <Card className="bg-gradient-to-b from-gray-900 to-black border-gray-800 rounded-lg shadow-xl text-foreground h-[calc(100vh-8rem)] md:h-[calc(100vh-10rem)] flex flex-col animate-fade-in">
+    <Card className="bg-gradient-to-b from-gray-900 to-black border-gray-800 rounded-lg shadow-xl text-foreground h-[calc(100vh-8rem)] md:h-[calc(100vh-10rem)] flex flex-col animate-fade-in transition-all duration-300 hover:shadow-2xl">
       <CardHeader className="px-4 py-3 border-b border-gray-800 flex flex-row items-center space-y-0 justify-between">
         <CardTitle className="text-base font-medium flex items-center gap-2">
           <Bot className="h-4 w-4" />
@@ -215,7 +251,7 @@ export default function ChatInterface({ userId }: { userId: string }) {
             size="sm"
             onClick={clearChatHistory}
             disabled={isLoading || isLoadingHistory}
-            className="h-8 gap-1 text-xs hover:bg-gray-800/50"
+            className="h-8 gap-1 text-xs hover:bg-gray-800/50 transition-all"
           >
             <RotateCcw className="h-3 w-3" />
             Clear History
@@ -223,7 +259,7 @@ export default function ChatInterface({ userId }: { userId: string }) {
         )}
       </CardHeader>
       
-      <CardContent className="flex-1 overflow-y-auto p-4 space-y-4">
+      <CardContent className="flex-1 overflow-y-auto p-4 space-y-4 scroll-smooth">
         {isLoadingHistory ? (
           <div className="h-full flex items-center justify-center">
             <div className="flex flex-col items-center gap-2">
@@ -234,11 +270,11 @@ export default function ChatInterface({ userId }: { userId: string }) {
         ) : messages.length === 0 ? (
           <div className="h-full flex flex-col items-center justify-center text-center">
             <div className="mx-auto flex max-w-[420px] flex-col items-center justify-center text-center">
-              <div className="flex h-16 w-16 items-center justify-center rounded-full bg-gradient-to-br from-gray-800 to-black mb-4 p-3 shadow-inner border border-gray-700">
+              <div className="flex h-16 w-16 items-center justify-center rounded-full bg-gradient-to-br from-gray-800 to-black mb-4 p-3 shadow-inner border border-gray-700 animate-pulse-slow">
                 <Bot className="h-8 w-8 text-white" />
               </div>
-              <h3 className="mt-4 text-xl font-medium">Ask about your documents</h3>
-              <p className="mb-4 mt-2 text-sm text-muted-foreground max-w-sm">
+              <h3 className="mt-4 text-xl font-medium opacity-0 animate-fade-in" style={{ animationDelay: '0.3s', animationFillMode: 'forwards' }}>Ask about your documents</h3>
+              <p className="mb-4 mt-2 text-sm text-muted-foreground max-w-sm opacity-0 animate-fade-in" style={{ animationDelay: '0.5s', animationFillMode: 'forwards' }}>
                 Upload PDFs from the sidebar, then ask questions to get instant, AI-powered answers based on your content.
               </p>
             </div>
@@ -251,14 +287,16 @@ export default function ChatInterface({ userId }: { userId: string }) {
               style={{ animationDelay: `${index * 0.1}s` }}
             >
               <div
-                className={`flex max-w-[85%] md:max-w-[75%] rounded-lg px-3 py-2 shadow-md ${
+                className={`flex max-w-[85%] md:max-w-[75%] rounded-lg px-3 py-2 shadow-xl ${
                   msg.role === 'user'
-                    ? 'bg-primary text-primary-foreground'
-                    : 'bg-gray-800/70 text-foreground backdrop-blur-sm border border-gray-700'
+                    ? 'bg-gradient-to-r from-gray-200 to-gray-300 text-black'
+                    : 'bg-gradient-to-b from-gray-900 to-black text-foreground backdrop-blur-sm border border-gray-800 hover:border-gray-700 transition-all'
                 }`}
               >
                 <div className={`mr-2 flex h-6 w-6 shrink-0 items-center justify-center rounded-full ${
-                  msg.role === 'user' ? 'bg-primary-foreground/20' : 'bg-gray-700'
+                  msg.role === 'user' 
+                    ? 'bg-black/10' 
+                    : 'bg-gradient-to-br from-gray-800 to-black border border-gray-700'
                 }`}>
                   {msg.role === 'user' ? (
                     <User className="h-3 w-3" />
@@ -267,9 +305,17 @@ export default function ChatInterface({ userId }: { userId: string }) {
                   )}
                 </div>
                 <div className="flex-1">
-                  <div className="prose-sm whitespace-pre-wrap">
-                    {msg.message}
-                  </div>
+                  {msg.isTyping ? (
+                    <div className="typing-indicator">
+                      <span></span>
+                      <span></span>
+                      <span></span>
+                    </div>
+                  ) : (
+                    <div className="prose-sm whitespace-pre-wrap">
+                      {msg.message}
+                    </div>
+                  )}
                   
                   {msg.sources && msg.sources.length > 0 && (
                     <div className="mt-2 text-xs border-t border-gray-700/40 pt-2 opacity-80">
@@ -291,30 +337,100 @@ export default function ChatInterface({ userId }: { userId: string }) {
         <div ref={messagesEndRef} />
       </CardContent>
       
-      <CardFooter className="border-t border-gray-800 p-4 bg-black/40">
+      <CardFooter className="border-t border-gray-800 p-4 bg-black/40 backdrop-blur-sm">
         <form onSubmit={handleSendMessage} className="flex w-full gap-2">
           <Input
+            ref={inputRef}
             value={input}
             onChange={(e) => setInput(e.target.value)}
             placeholder="Ask a question about your documents..."
             disabled={isLoading || isLoadingHistory}
-            className="flex-1 bg-gray-800/50 border-gray-700 focus-visible:ring-gray-500 placeholder:text-gray-500"
+            className="flex-1 bg-gray-900/80 border-gray-800 focus-visible:border-gray-600 focus-visible:ring-gray-700 placeholder:text-gray-500 transition-all"
           />
           <Button
             type="submit"
             disabled={isLoading || isLoadingHistory || !input.trim() || !userId}
             size="icon"
-            className="shrink-0 bg-primary hover:bg-primary/80 text-white"
+            className="shrink-0 bg-gradient-to-r from-gray-200 to-gray-300 text-black hover:from-white hover:to-gray-200 transition-all group"
           >
             {isLoading ? (
               <div className="h-4 w-4 border-2 border-current border-t-transparent rounded-full animate-spin" />
             ) : (
-              <Send className="h-4 w-4" />
+              <Send className="h-4 w-4 group-hover:translate-x-0.5 transition-transform duration-300" />
             )}
             <span className="sr-only">Send</span>
           </Button>
         </form>
       </CardFooter>
+      
+      {/* Animation styles */}
+      <style jsx global>{`
+        @keyframes fadeIn {
+          from {
+            opacity: 0;
+            transform: translateY(10px);
+          }
+          to {
+            opacity: 1;
+            transform: translateY(0);
+          }
+        }
+        
+        .animate-fade-in {
+          animation: fadeIn 0.5s ease-out forwards;
+        }
+        
+        @keyframes pulse-slow {
+          0%, 100% {
+            opacity: 0.6;
+            transform: scale(1);
+          }
+          50% {
+            opacity: 0.8;
+            transform: scale(1.05);
+          }
+        }
+        
+        .animate-pulse-slow {
+          animation: pulse-slow 3s ease-in-out infinite;
+        }
+        
+        /* Typing indicator animation */
+        .typing-indicator {
+          display: flex;
+          align-items: center;
+          padding: 4px 0;
+        }
+        
+        .typing-indicator span {
+          height: 8px;
+          width: 8px;
+          float: left;
+          margin: 0 1px;
+          background-color: #9e9e9e;
+          display: block;
+          border-radius: 50%;
+          opacity: 0.4;
+        }
+        
+        .typing-indicator span:nth-of-type(1) {
+          animation: 1s blink infinite 0.3333s;
+        }
+        
+        .typing-indicator span:nth-of-type(2) {
+          animation: 1s blink infinite 0.6666s;
+        }
+        
+        .typing-indicator span:nth-of-type(3) {
+          animation: 1s blink infinite 0.9999s;
+        }
+        
+        @keyframes blink {
+          50% {
+            opacity: 1;
+          }
+        }
+      `}</style>
     </Card>
   );
 }

@@ -89,7 +89,7 @@ export async function POST(request: Request) {
     const completion = await openRouter.chat.completions.create({
       model: modelId,
       messages: [{ role: "user", content: prompt }],
-      temperature: 0.5,
+      temperature: 0.2,
       max_tokens: 1000,
     });
     
