@@ -5,11 +5,7 @@ import { createBrowserClient } from '@supabase/ssr';
 import { Card, CardHeader, CardContent, CardTitle } from "@/components/ui/card";
 import { toast } from "sonner";
 import { Upload, Loader2, FileIcon, CheckCircle2, FilePlus } from "lucide-react";
-
-interface FileUploadProps {
-  userId: string;
-  onUpload?: () => void;
-}
+import { FileUploadProps } from '@/types/FileUploadProps';
 
 // const MODEL_OPTIONS = [
 //   { id: "deepseek/deepseek-r1:free", name: "DeepSeek-R1", description: "Ultimate Model for Complex Tasks" },

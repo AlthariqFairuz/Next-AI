@@ -4,15 +4,9 @@ import { createContext, useContext, useEffect, useState, ReactNode } from "react
 import { useRouter } from "next/navigation";
 import { Session, User } from "@supabase/supabase-js";
 import { createBrowserClient } from "@supabase/ssr";
+import { AuthContextProps } from "@/types/AuthContextProps";
 
-interface AuthContextType {
-  user: User | null;
-  session: Session | null;
-  isLoading: boolean;
-  signOut: () => Promise<void>;
-}
-
-const AuthContext = createContext<AuthContextType>({
+const AuthContext = createContext<AuthContextProps>({
   user: null,
   session: null,
   isLoading: true,
