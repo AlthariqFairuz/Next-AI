@@ -19,8 +19,8 @@ export const metadata: Metadata = {
   title: "NEXT AI",
   description: "Document RAG system with various AI models",
   icons: {
-    icon: "/favicon.ico",
-    shortcut: "/favicon.ico",
+    icon: "/icon512.png",
+    shortcut: "/icon.png",
   },
 };
 
