@@ -81,7 +81,7 @@ export default function Dashboard() {
           </p>
         </div>
 
-        {/* Mobile tabs with improved transitions */}
+        {/* Mobile tabs */}
         <div className="md:hidden mb-6">
           <Tabs defaultValue="chat" value={activeTab} onValueChange={setActiveTab}>
             <TabsList className="w-full grid grid-cols-2 bg-gray-900/80 p-1 rounded-lg border border-gray-800 backdrop-blur-sm">
@@ -148,7 +148,7 @@ export default function Dashboard() {
                             <div className="min-w-0 flex-1">
                               <div className="flex items-center gap-2">
                                 <FileText className="h-4 w-4 text-gray-400 flex-shrink-0" />
-                                <p className="truncate font-medium text-sm">{doc.name}</p>
+                                <p className="truncate font-medium text-sm max-w-[120px]">{doc.name}</p>
                               </div>
                               <p className="text-xs text-muted-foreground mt-1">
                                 {new Date(doc.created_at).toLocaleDateString()}
@@ -158,15 +158,15 @@ export default function Dashboard() {
                               href={doc.url}
                               target="_blank"
                               rel="noopener noreferrer"
-                              className="ml-2 p-2 rounded-full bg-gray-800 hover:bg-gray-700 transition-colors group-hover:bg-gray-700"
+                              className="ml-2 p-2 rounded-full bg-gray-800 hover:bg-gray-700 transition-colors group-hover:bg-gray-700 flex-shrink-0"
                             >
-                              <ChevronRight className="h-4 w-4" />
+                              <ChevronRight className="h-4 w-4 transition-transform group-hover:translate-x-1" />
                               <span className="sr-only">View Document</span>
                             </a>
                           </li>
                         ))}
-                      </ul>
-                    )}
+                        </ul>
+                      )}
                   </div>
                 </div>
               </div>
@@ -174,7 +174,7 @@ export default function Dashboard() {
           </Tabs>
         </div>
         
-        {/* Desktop layout with enhanced animations */}
+        {/* Desktop layout */}
         <div className="hidden md:grid md:grid-cols-3 gap-6">
           <div className="md:col-span-1 space-y-6">
             <FileUpload
