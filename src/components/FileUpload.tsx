@@ -72,9 +72,8 @@ export default function FileUpload({ userId, onUpload }: FileUploadProps) {
     try {
       // 1. Upload file to Supabase Storage
       const fileExt = file.name.split('.').pop();
-      const fileName = `${Math.random().toString(36).substring(2)}.${fileExt}`;
-      const filePath = `${userId}/${fileName}`;
-      
+      const storageFileName = `${Math.random().toString(36).substring(2)}.${fileExt}`;
+      const filePath = `${userId}/${storageFileName}`;
       setProgress(20);
       
       // Upload the file directly
@@ -87,6 +86,9 @@ export default function FileUpload({ userId, onUpload }: FileUploadProps) {
         throw new Error(`Upload failed: ${uploadError.message}`);
       }
       
+      const fileUrl = `${process.env.NEXT_PUBLIC_SUPABASE_URL}/storage/v1/object/public/pdfs/${userId}/${storageFileName}`;
+
+
       setProgress(40);
       
       // 3. Process the PDF for RAG
@@ -94,6 +96,7 @@ export default function FileUpload({ userId, onUpload }: FileUploadProps) {
       formData.append('file', file);
       formData.append('userId', userId);
       formData.append('documentName', file.name.replace(/\.[^/.]+$/, ""));
+      formData.append('fileUrl', fileUrl);
       formData.append('modelId', selectedModel);
       
       setProgress(60);

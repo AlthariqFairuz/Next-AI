@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from "react";
 import { useAuth } from "@/context/AuthContext";
-import { supabase } from "@/lib/supabase";
+import { createBrowserClient } from "@supabase/ssr"; // Use createBrowserClient instead
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
 import FileUpload from "@/components/FileUpload";
 import ChatInterface from "@/components/ChatInterface";
@@ -23,26 +23,41 @@ export default function Dashboard() {
   const [documents, setDocuments] = useState<Document[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [activeTab, setActiveTab] = useState<string>("chat");
+  const [supabaseClient, setSupabaseClient] = useState<any>(null);
 
   useEffect(() => {
-    fetchDocuments();
+    const client = createBrowserClient(
+      process.env.NEXT_PUBLIC_SUPABASE_URL!,
+      process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
+    );
+    setSupabaseClient(client);
   }, []);
 
+  useEffect(() => {
+    if (user && supabaseClient) {
+      fetchDocuments();
+    }
+  }, [user, supabaseClient]);
+
   async function fetchDocuments() {
-    if (!user) return;
+    if (!user || !supabaseClient) return;
     
     setIsLoading(true);
+    console.log("Fetching documents for user:", user.id);
     try {
-      const { data, error } = await supabase
+      const { data, error } = await supabaseClient
         .from("documents")
         .select("*")
         .eq("user_id", user.id)
         .order("created_at", { ascending: false });
 
       if (error) throw error;
+      
+      console.log("Documents fetched:", data);
       setDocuments(data || []);
     } catch (error: Error | unknown) {
       const message = error instanceof Error ? error.message : 'Unknown error occurred';
+      console.error("Error fetching documents:", error);
       toast.error("Error fetching documents: " + message);
     } finally {
       setIsLoading(false);
@@ -50,7 +65,10 @@ export default function Dashboard() {
   }
 
   const handleDocumentUpload = () => {
-    fetchDocuments();
+    // Add a small delay to ensure the database has time to update
+    setTimeout(() => {
+      fetchDocuments();
+    }, 1000);
   };
 
   return (
@@ -141,7 +159,7 @@ export default function Dashboard() {
                               </p>
                             </div>
                             <a
-                              href={doc.url}
+                              href={`${process.env.NEXT_PUBLIC_SUPABASE_URL}/storage/v1/object/public/pdfs/${encodeURIComponent(doc.id)}/${encodeURIComponent(doc.name)}.pdf`}
                               target="_blank"
                               rel="noopener noreferrer"
                               className="ml-2 p-2 rounded-full bg-gray-800 hover:bg-gray-700 transition-colors group-hover:bg-gray-700"

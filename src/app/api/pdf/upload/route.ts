@@ -12,6 +12,7 @@ export async function POST(request: Request) {
     const file = formData.get("file") as File;
     const userId = formData.get("userId") as string;
     const documentName = formData.get("documentName") as string;
+    const fileUrl = formData.get("fileUrl") as string;
     
     if (!file || !userId) {
       return NextResponse.json(
@@ -43,10 +44,7 @@ export async function POST(request: Request) {
       process.env.NEXT_PUBLIC_SUPABASE_ROLE_KEY!, 
       { auth: { persistSession: false } }
     );
-    
-    // Generate file URL
-    const fileUrl = `${process.env.NEXT_PUBLIC_SUPABASE_URL}/storage/v1/object/public/pdfs/${userId}/${file.name}`;
-    
+        
     // 1. Insert document metadata
     const { error: metadataError } = await supabaseAdmin
       .from("document_metadata")

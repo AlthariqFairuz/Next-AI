@@ -2,7 +2,7 @@ import { NextResponse } from "next/server";
 import { queryDocuments } from "@/lib/ragservice";
 import OpenAI from "openai";
 import { supabase } from "@/lib/supabase";
-// import { createClient } from "@supabase/supabase-js";
+import { createClient } from "@supabase/supabase-js";
 
 const openRouter = new OpenAI({
   apiKey: process.env.NEXT_PUBLIC_OPENROUTER_API_KEY || "",
@@ -10,11 +10,11 @@ const openRouter = new OpenAI({
 });
 
 // Admin client to check documents
-// const supabaseAdmin = createClient(
-//   process.env.NEXT_PUBLIC_SUPABASE_URL!,
-//   process.env.NEXT_PUBLIC_SUPABASE_ROLE_KEY!,
-//   { auth: { persistSession: false } }
-// );
+const supabaseAdmin = createClient(
+  process.env.NEXT_PUBLIC_SUPABASE_URL!,
+  process.env.NEXT_PUBLIC_SUPABASE_ROLE_KEY!,
+  { auth: { persistSession: false } }
+);
 
 export async function POST(request: Request) {
   try {
@@ -27,11 +27,11 @@ export async function POST(request: Request) {
       );
     }
     
-    // // Check if user has documents
-    // const { data: docs, error: docsError } = await supabaseAdmin
-    //   .from("documents")
-    //   .select("id")
-    //   .eq("user_id", userId);
+    // Check if user has documents
+    const { error: docsError } = await supabaseAdmin
+      .from("documents")
+      .select("id")
+      .eq("user_id", userId);
 
     const { data: userPrefs } = await supabase
     .from('user_preferences')
@@ -41,16 +41,10 @@ export async function POST(request: Request) {
 
     const modelId = userPrefs?.model_id || "meta-llama/llama-4-scout:free";
       
-    // if (docsError) {
-    //   console.error("Error checking documents:", docsError);
-    // }
+    if (docsError) {
+      console.error("Error checking documents:", docsError);
+    }
     
-    // if (!docs || docs.length === 0) {
-    //   return NextResponse.json({
-    //     response: "Please upload some documents first before asking questions.",
-    //     sources: []
-    //   });
-    // }
     
     // Query relevant documents from vector DB with more detailed error handling
     console.log("Querying documents for:", userId);
