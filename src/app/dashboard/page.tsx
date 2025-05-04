@@ -9,6 +9,8 @@ import FileUpload from "@/components/FileUpload";
 import ChatInterface from "@/components/ChatInterface";
 import { toast } from "sonner";
 import { FileText, LogOut, ChevronRight } from "lucide-react";
+import Navbar from "@/components/Navbar";
+import Footer from "@/components/Footer";
 
 interface Document {
   id: string;
@@ -54,25 +56,7 @@ export default function Dashboard() {
   // Mobile-friendly layout with tabs
   return (
     <div className="min-h-screen bg-background">
-      <header className="sticky top-0 z-40 w-full border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
-        <div className="container flex h-14 items-center">
-          <div className="mr-4 flex">
-            <a href="/" className="flex items-center space-x-2">
-              <FileText className="h-5 w-5" />
-              <span className="font-bold inline-block">DeepSeek RAG</span>
-            </a>
-          </div>
-          <div className="flex flex-1 items-center justify-end space-x-2">
-            <div className="hidden md:flex">
-              <span className="text-sm text-muted-foreground mr-2">{user?.email}</span>
-            </div>
-            <Button variant="ghost" size="icon" onClick={signOut}>
-              <LogOut className="h-4 w-4" />
-              <span className="sr-only">Sign out</span>
-            </Button>
-          </div>
-        </div>
-      </header>
+      <Navbar />
 
       <div className="container mt-6">
         {/* Mobile tabs */}
@@ -188,6 +172,7 @@ export default function Dashboard() {
           </div>
         </div>
       </div>
+      <Footer/>
     </div>
   );
 }

@@ -16,8 +16,12 @@ const geistMono = Geist_Mono({
 });
 
 export const metadata: Metadata = {
-  title: "DeepSeek RAG",
-  description: "Document RAG system with DeepSeek AI",
+  title: "NEXT AI",
+  description: "Document RAG system with various AI models",
+  icons: {
+    icon: "/favicon.ico",
+    shortcut: "/favicon.ico",
+  },
 };
 
 export default function RootLayout({
