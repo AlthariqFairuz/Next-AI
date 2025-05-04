@@ -1,36 +1,104 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# NEXT AI
 
-## Getting Started
+A document retrieval augmented generation (RAG) system that allows users to upload PDFs and chat with their documents using various AI models.
 
-First, run the development server:
+![image](https://github.com/user-attachments/assets/92694fcf-47c9-46aa-b690-f1deca8b5f5c)
 
-```bash
-npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
+
+## Features
+
+- **Document Management**: Upload, store, and manage PDF documents
+- **AI-Powered Chat**: Ask questions about your documents in natural language
+- **Multiple AI Models**: Choose between DeepSeek-R1, Llama 4 Scout, and Mistral Small
+- **Secure Authentication**: User accounts with Supabase authentication
+- **Responsive Design**: Works on desktop and mobile devices
+
+## Tech Stack
+
+- **Frontend**: Next.js 15, TypeScript, Tailwind CSS, Shadcn UI
+- **Backend**: Next.js API routes, Supabase
+- **AI & Embeddings**: OpenRouter, Cohere, Langchain
+- **Vector Database**: Pinecone
+- **Storage**: Supabase Storage
+
+## Prerequisites
+
+- Node.js 18+ and npm
+- Supabase account
+- Pinecone account
+- Cohere API key
+- OpenRouter API key
+
+## Installation
+
+1. Clone the repository
+   ```bash
+   git clone https://github.com/yourusername/next-ai.git
+   cd next-ai
+   ```
+
+2. Install dependencies
+   ```bash
+   npm install
+   ```
+
+3. Create a `.env.local` file with the following variables:
+   ```
+   SUPABASE_URL=your_supabase_url
+   SUPABASE_ANON_KEY=your_supabase_anon_key
+   SUPABASE_ROLE_KEY=your_supabase_service_role_key
+   OPENROUTER_API_KEY=your_openrouter_api_key
+   COHERE_API_KEY=your_cohere_api_key
+   PINECONE_API_KEY=your_pinecone_api_key
+   ```
+
+4. Set up Supabase database with the required tables:
+   - documents
+   - document_metadata
+   - chat_history
+   - user_preferences
+
+5. Create a Pinecone index named 'sample-movies'
+
+6. Run the development server
+   ```bash
+   npm run dev
+   ```
+
+7. Open [http://localhost:3000](http://localhost:3000) in your browser
+
+## Project Structure
+
+```
+src/
+├── app/                 # Next.js App Router
+│   ├── api/             # API routes
+│   ├── dashboard/       # Dashboard page
+│   ├── login/           # Login page
+│   ├── register/        # Registration page
+│   └── page.tsx         # Home page
+├── components/          # React components
+│   ├── ui/              # UI components (shadcn)
+│   ├── ChatInterface.tsx
+│   ├── FileUpload.tsx
+│   └── ...
+├── context/             # React context
+│   └── AuthContext.tsx
+├── lib/                 # Utility functions
+│   ├── ragservice.ts    # RAG service
+│   ├── supabase.ts      # Supabase client
+│   └── utils.ts         # Helper functions
+└── middleware.ts        # Next.js middleware
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+## Usage
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+1. Register for an account or log in
+2. Upload PDF documents from the dashboard
+3. Select your preferred AI model
+4. Start chatting with your documents
+5. View document list and manage your content
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+## License
 
-## Learn More
-
-To learn more about Next.js, take a look at the following resources:
-
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
-
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
-
-## Deploy on Vercel
-
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
-
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+MIT
