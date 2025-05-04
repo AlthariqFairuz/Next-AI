@@ -1,7 +1,6 @@
 import { NextResponse } from "next/server";
 import { queryDocuments } from "@/lib/ragservice";
 import OpenAI from "openai";
-import { supabase } from "@/lib/supabase";
 import { createClient } from "@supabase/supabase-js";
 
 const openRouter = new OpenAI({
@@ -18,7 +17,7 @@ const supabaseAdmin = createClient(
 
 export async function POST(request: Request) {
   try {
-    const { message, userId } = await request.json();
+    const { message, userId, modelId } = await request.json();
     
     if (!message || !userId) {
       return NextResponse.json(
@@ -33,19 +32,13 @@ export async function POST(request: Request) {
       .select("id")
       .eq("user_id", userId);
 
-    const { data: userPrefs } = await supabase
-    .from('user_preferences')
-    .select('model_id')
-    .eq('user_id', userId)
-    .single();
-
-    const modelId = userPrefs?.model_id || "meta-llama/llama-4-scout:free";
       
     if (docsError) {
       console.error("Error checking documents:", docsError);
     }
 
     // console.log("Querying documents for:", userId);
+    
     const results = await queryDocuments(message, userId);
     console.log("Search results:", JSON.stringify(results, null, 2));
     
@@ -67,9 +60,11 @@ export async function POST(request: Request) {
     //     `Document-${match.metadata.documentId.substring(0, 8)}`
     //   )
     // )];
+
+    const modelToUse = modelId || "meta-llama/llama-4-scout:free";
     
     const prompt = `
-      You are an AI assistant for question-answering on documents. Your model is ${modelId}.
+      You are an AI assistant for question-answering on documents. Your model is ${modelToUse}.
       You have access to the following context from the user's documents. 
       Answer the question based on the context below unless the user say otherwise. If you cannot find
       the answer in the context or there is no context provided, 

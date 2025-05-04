@@ -5,11 +5,16 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Card, CardHeader, CardContent, CardFooter, CardTitle } from "@/components/ui/card";
 import { toast } from "sonner";
-import { Send, Bot, User, RotateCcw } from "lucide-react";
+import { Send, Bot, User, RotateCcw, Sparkles } from "lucide-react";
 import { createBrowserClient } from "@supabase/ssr";
 import { Message } from "@/types/MessageProps";
 import ConfirmDialog from './ConfirmDialog';
 
+const MODEL_OPTIONS = [
+  { id: "deepseek/deepseek-r1:free", name: "DeepSeek-R1", description: "Ultimate Model for Complex Tasks" },
+  { id: "meta-llama/llama-4-scout:free", name: "Llama 4", description: "Open source, highly capable" },
+  { id: "mistralai/mistral-small-3.1-24b-instruct:free", name: "Mistral Small", description: "Perfect for Everyday Tasks" }
+];
 
 export default function ChatInterface({ userId }: { userId: string }) {
   const [messages, setMessages] = useState<Message[]>([]);
@@ -17,6 +22,7 @@ export default function ChatInterface({ userId }: { userId: string }) {
   const [isLoading, setIsLoading] = useState(false);
   const [isLoadingHistory, setIsLoadingHistory] = useState(false);
   const [confirmDialogOpen, setConfirmDialogOpen] = useState(false);
+  const [selectedModel, setSelectedModel] = useState(MODEL_OPTIONS[1].id);
   
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const inputRef = useRef<HTMLInputElement>(null);
@@ -25,8 +31,12 @@ export default function ChatInterface({ userId }: { userId: string }) {
     process.env.SUPABASE_URL!,
     process.env.SUPABASE_ANON_KEY!
   );
-  
 
+  const handleModelSelect = (modelId: string) => {
+    setSelectedModel(modelId);
+    toast.success(`Model changed to ${MODEL_OPTIONS.find(m => m.id === modelId)?.name}`);
+  }
+  
   useEffect(() => {
     if (inputRef.current) {
       inputRef.current.focus();
@@ -166,6 +176,7 @@ export default function ChatInterface({ userId }: { userId: string }) {
         body: JSON.stringify({
           message: userMessage,
           userId,
+          modelId: selectedModel,
         }),
       });
       
@@ -256,6 +267,30 @@ export default function ChatInterface({ userId }: { userId: string }) {
             </Button>
           )}
       </CardHeader>
+
+      {/* Model selection */}
+      <div className="bg-black/40 backdrop-blur-sm border-b border-gray-800 p-3">
+        <div className="flex items-center mb-2">
+          <Sparkles className="h-4 w-4 mr-2 text-primary" />
+          <span className="text-sm font-medium">Select AI Model:</span>
+        </div>
+        <div className="grid grid-cols-3 gap-2">
+          {MODEL_OPTIONS.map((model) => (
+            <div
+              key={model.id}
+              className={`p-2 rounded-lg border cursor-pointer transition-all text-sm ${
+                selectedModel === model.id 
+                  ? 'border-primary bg-primary/10' 
+                  : 'border-gray-700 hover:border-gray-600'
+              }`}
+              onClick={() => handleModelSelect(model.id)}
+            >
+              <div className="font-medium text-xs">{model.name}</div>
+              <div className="text-xs text-muted-foreground mt-1 text-[10px]">{model.description}</div>
+            </div>
+          ))}
+        </div>
+      </div>
       
       <CardContent className="flex-1 overflow-y-auto p-4 space-y-4 scroll-smooth">
         {isLoadingHistory ? (
