@@ -18,7 +18,7 @@ const pinecone = new Pinecone({
 const index = pinecone.index('sample-movies');
 
 // Process PDF files
-export async function processPdf(file) {
+export async function processPdf(file: string | Blob) {
   try {
     // Load and extract text from PDF
     const loader = new PDFLoader(file);
@@ -43,12 +43,12 @@ export async function processPdf(file) {
 }
 
 // Vector DB operations
-export async function storeDocument(documentId, texts) {
+export async function storeDocument(documentId: string, texts: string[]) {
   try {
     console.log(`Creating embeddings for ${texts.length} chunks`);
     
     const vectors = await Promise.all(
-      texts.map(async (text, i) => {
+      texts.map(async (text: string, i: number) => {
         const embedding = await embeddings.embedQuery(text);
         return {
           id: `${documentId}-${i}`,
@@ -78,7 +78,7 @@ export async function storeDocument(documentId, texts) {
   }
 }
 
-export async function queryDocuments(query, userId, topK = 5) {
+export async function queryDocuments(query: string, userId: string, topK = 5) {
   try {
     console.log(`Generating embedding for query: "${query}"`);
     
