@@ -1,16 +1,14 @@
-// src/app/api/chat/route.ts (updated)
 import { NextResponse } from "next/server";
 import { queryDocuments } from "@/lib/ragservice";
 import OpenAI from "openai";
 import { createClient } from "@supabase/supabase-js";
 
-// Initialize OpenRouter client
 const openRouter = new OpenAI({
   apiKey: process.env.NEXT_PUBLIC_OPENROUTER_API_KEY || "",
   baseURL: "https://openrouter.ai/api/v1",
 });
 
-// Create admin client to check documents
+// Admin client to check documents
 const supabaseAdmin = createClient(
   process.env.NEXT_PUBLIC_SUPABASE_URL!,
   process.env.NEXT_PUBLIC_SUPABASE_ROLE_KEY!,
@@ -71,16 +69,16 @@ export async function POST(request: Request) {
     
     // Construct the prompt with context
     const prompt = `
-You are an AI assistant for question-answering on documents. 
-Answer the question based on the context below. If you cannot find
-the answer in the context, just say "I don't know based on the available documents."
+      You are an AI assistant for question-answering on documents. 
+      Answer the question based on the context below. If you cannot find
+      the answer in the context, give a warning to user that you don't know about the context and answer as much as you can."
 
-Context:
-${context}
+      Context:
+      ${context}
 
-Question: ${message}
+      Question: ${message}
 
-Answer:`;
+      Answer:`;
     
     // Get response from OpenRouter (using DeepSeek model)
     const completion = await openRouter.chat.completions.create({

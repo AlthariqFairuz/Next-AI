@@ -102,7 +102,6 @@ export default function FileUpload({ userId, onUpload }: FileUploadProps) {
       
       setProgress(80);
       
-      
       setProgress(100);
       toast.success('Document uploaded successfully!');
       setSuccess(true);
@@ -154,17 +153,20 @@ export default function FileUpload({ userId, onUpload }: FileUploadProps) {
   }
   
   return (
-    <Card className="bg-card text-card-foreground rounded-lg border shadow-sm hover-lift transition-all animate-fade-in">
-      <CardHeader className="px-4 py-3 border-b flex flex-row items-center space-y-0">
-        <CardTitle className="text-base font-medium">Upload PDF</CardTitle>
+    <Card className="bg-gradient-to-b from-gray-900 to-black text-foreground rounded-lg border border-gray-800 shadow-xl hover:shadow-2xl hover:border-gray-700 transition-all animate-fade-in">
+      <CardHeader className="px-4 py-3 border-b border-gray-800 flex flex-row items-center space-y-0">
+        <CardTitle className="text-base font-medium flex items-center gap-2">
+          <Upload className="h-4 w-4" />
+          Upload PDF
+        </CardTitle>
       </CardHeader>
       
       <CardContent className="p-4">
         <div className="space-y-4">
           <div 
             className={`border-2 border-dashed rounded-md p-6 text-center cursor-pointer transition-all duration-200 ${
-              dragActive ? 'border-primary bg-primary/5 scale-105' : 'hover:bg-muted/50'
-            } ${success ? 'bg-green-50 border-green-200' : ''}`}
+              dragActive ? 'border-primary bg-primary/5 scale-105' : 'border-gray-700 hover:bg-gray-800/50'
+            } ${success ? 'bg-green-900/20 border-green-700' : ''}`}
             onClick={handleButtonClick}
             onDragEnter={handleDrag}
             onDragLeave={handleDrag}
@@ -184,7 +186,7 @@ export default function FileUpload({ userId, onUpload }: FileUploadProps) {
               <div className="flex flex-col items-center space-y-3 animate-fade-in">
                 <Loader2 className="h-8 w-8 text-primary animate-spin" />
                 <p className="text-sm font-medium">Processing PDF...</p>
-                <div className="w-full bg-secondary rounded-full h-2.5 mt-2 overflow-hidden">
+                <div className="w-full bg-gray-800 rounded-full h-2.5 mt-2 overflow-hidden">
                   <div 
                     className="bg-primary h-2.5 rounded-full transition-all"
                     style={{ 
@@ -200,9 +202,9 @@ export default function FileUpload({ userId, onUpload }: FileUploadProps) {
               </div>
             ) : success ? (
               <div className="flex flex-col items-center space-y-2 animate-slide-up">
-                <CheckCircle2 className="h-8 w-8 text-green-500 animate-scale" />
-                <p className="text-sm font-medium text-green-700">Upload Complete!</p>
-                <p className="text-xs text-green-600">Your document is ready to use</p>
+                <CheckCircle2 className="h-8 w-8 text-green-500 animate-pulse" />
+                <p className="text-sm font-medium text-green-400">Upload Complete!</p>
+                <p className="text-xs text-green-500/80">Your document is ready to use</p>
               </div>
             ) : (
               <div className="flex flex-col items-center space-y-2">

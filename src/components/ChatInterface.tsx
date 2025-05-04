@@ -37,8 +37,6 @@ export default function ChatInterface({ userId }: { userId: string }) {
       
       setIsLoadingHistory(true);
       try {
-        console.log("Fetching chat history for user:", userId);
-        
         const { data, error } = await supabase
           .from('chat_history')
           .select('*')
@@ -50,8 +48,6 @@ export default function ChatInterface({ userId }: { userId: string }) {
           throw error;
         }
         
-        console.log("Fetched chat history:", data);
-        
         if (data && data.length > 0) {
           const formattedMessages = data.map(msg => ({
             id: msg.id,
@@ -62,9 +58,6 @@ export default function ChatInterface({ userId }: { userId: string }) {
           }));
           
           setMessages(formattedMessages);
-          console.log("Set messages state with:", formattedMessages.length, "messages");
-        } else {
-          console.log("No chat history found");
         }
       } catch (error: any) {
         console.error('Error fetching chat history:', error);
@@ -75,7 +68,7 @@ export default function ChatInterface({ userId }: { userId: string }) {
     }
     
     loadChatHistory();
-  }, [userId]);
+  }, [userId, supabase]);
   
   // Auto-scroll to bottom when messages change
   useEffect(() => {
@@ -90,8 +83,6 @@ export default function ChatInterface({ userId }: { userId: string }) {
     if (!userId) return null;
     
     try {
-      console.log("Saving chat message:", message.role, "for user:", userId);
-      
       // Format sources for JSONB
       const sourcesData = message.sources && message.sources.length > 0 
         ? message.sources 
@@ -112,7 +103,6 @@ export default function ChatInterface({ userId }: { userId: string }) {
         throw error;
       }
       
-      console.log("Successfully saved chat message:", data);
       return data;
       
     } catch (error: any) {
@@ -213,16 +203,19 @@ export default function ChatInterface({ userId }: { userId: string }) {
   }
   
   return (
-    <Card className="bg-card text-card-foreground rounded-lg border shadow-sm h-[calc(100vh-8rem)] md:h-[calc(100vh-10rem)] flex flex-col">
-      <CardHeader className="px-4 py-3 border-b flex flex-row items-center space-y-0 justify-between">
-        <CardTitle className="text-base font-medium">Chat with Your Documents</CardTitle>
+    <Card className="bg-gradient-to-b from-gray-900 to-black border-gray-800 rounded-lg shadow-xl text-foreground h-[calc(100vh-8rem)] md:h-[calc(100vh-10rem)] flex flex-col animate-fade-in">
+      <CardHeader className="px-4 py-3 border-b border-gray-800 flex flex-row items-center space-y-0 justify-between">
+        <CardTitle className="text-base font-medium flex items-center gap-2">
+          <Bot className="h-4 w-4" />
+          Chat with Your Documents
+        </CardTitle>
         {messages.length > 0 && (
           <Button
             variant="ghost"
             size="sm"
             onClick={clearChatHistory}
             disabled={isLoading || isLoadingHistory}
-            className="h-8 gap-1 text-xs"
+            className="h-8 gap-1 text-xs hover:bg-gray-800/50"
           >
             <RotateCcw className="h-3 w-3" />
             Clear History
@@ -241,10 +234,10 @@ export default function ChatInterface({ userId }: { userId: string }) {
         ) : messages.length === 0 ? (
           <div className="h-full flex flex-col items-center justify-center text-center">
             <div className="mx-auto flex max-w-[420px] flex-col items-center justify-center text-center">
-              <div className="flex h-12 w-12 items-center justify-center rounded-full bg-muted mb-4">
-                <Bot className="h-6 w-6" />
+              <div className="flex h-16 w-16 items-center justify-center rounded-full bg-gradient-to-br from-gray-800 to-black mb-4 p-3 shadow-inner border border-gray-700">
+                <Bot className="h-8 w-8 text-white" />
               </div>
-              <h3 className="mt-4 text-lg font-medium">Ask about your documents</h3>
+              <h3 className="mt-4 text-xl font-medium">Ask about your documents</h3>
               <p className="mb-4 mt-2 text-sm text-muted-foreground max-w-sm">
                 Upload PDFs from the sidebar, then ask questions to get instant, AI-powered answers based on your content.
               </p>
@@ -254,16 +247,19 @@ export default function ChatInterface({ userId }: { userId: string }) {
           messages.map((msg, index) => (
             <div
               key={msg.id || index}
-              className={`flex ${msg.role === 'user' ? 'justify-end' : 'justify-start'}`}
+              className={`flex ${msg.role === 'user' ? 'justify-end' : 'justify-start'} animate-fade-in`}
+              style={{ animationDelay: `${index * 0.1}s` }}
             >
               <div
-                className={`flex max-w-[85%] md:max-w-[75%] rounded-lg px-3 py-2 ${
+                className={`flex max-w-[85%] md:max-w-[75%] rounded-lg px-3 py-2 shadow-md ${
                   msg.role === 'user'
                     ? 'bg-primary text-primary-foreground'
-                    : 'bg-muted text-foreground'
+                    : 'bg-gray-800/70 text-foreground backdrop-blur-sm border border-gray-700'
                 }`}
               >
-                <div className="mr-2 flex h-6 w-6 shrink-0 items-center justify-center rounded-full bg-background/30">
+                <div className={`mr-2 flex h-6 w-6 shrink-0 items-center justify-center rounded-full ${
+                  msg.role === 'user' ? 'bg-primary-foreground/20' : 'bg-gray-700'
+                }`}>
                   {msg.role === 'user' ? (
                     <User className="h-3 w-3" />
                   ) : (
@@ -276,11 +272,11 @@ export default function ChatInterface({ userId }: { userId: string }) {
                   </div>
                   
                   {msg.sources && msg.sources.length > 0 && (
-                    <div className="mt-2 text-xs border-t border-border/40 pt-2 opacity-80">
+                    <div className="mt-2 text-xs border-t border-gray-700/40 pt-2 opacity-80">
                       <div className="font-medium">Sources:</div>
                       <div className="flex flex-wrap gap-1 mt-1">
                         {msg.sources.map((source, idx) => (
-                          <span key={idx} className="inline-flex items-center rounded-full bg-secondary px-2 py-0.5 text-xs">
+                          <span key={idx} className="inline-flex items-center rounded-full bg-gray-700/70 px-2 py-0.5 text-xs">
                             {source}
                           </span>
                         ))}
@@ -295,20 +291,20 @@ export default function ChatInterface({ userId }: { userId: string }) {
         <div ref={messagesEndRef} />
       </CardContent>
       
-      <CardFooter className="border-t p-4">
+      <CardFooter className="border-t border-gray-800 p-4 bg-black/40">
         <form onSubmit={handleSendMessage} className="flex w-full gap-2">
           <Input
             value={input}
             onChange={(e) => setInput(e.target.value)}
             placeholder="Ask a question about your documents..."
             disabled={isLoading || isLoadingHistory}
-            className="flex-1"
+            className="flex-1 bg-gray-800/50 border-gray-700 focus-visible:ring-gray-500 placeholder:text-gray-500"
           />
           <Button
             type="submit"
             disabled={isLoading || isLoadingHistory || !input.trim() || !userId}
             size="icon"
-            className="shrink-0"
+            className="shrink-0 bg-primary hover:bg-primary/80 text-white"
           >
             {isLoading ? (
               <div className="h-4 w-4 border-2 border-current border-t-transparent rounded-full animate-spin" />
