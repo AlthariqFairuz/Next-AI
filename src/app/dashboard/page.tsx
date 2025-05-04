@@ -175,44 +175,45 @@ export default function Dashboard() {
         </div>
         
         {/* Desktop layout */}
-        <div className="hidden md:grid md:grid-cols-3 gap-6">
-          <div className="md:col-span-1 space-y-6">
-            <FileUpload
-              userId={user?.id || ""}
-              onUpload={handleDocumentUpload}
-            />
+        <div className="hidden md:block">
+          <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+            <div className="lg:col-span-1 space-y-6">
+              <FileUpload
+                userId={user?.id || ""}
+                onUpload={handleDocumentUpload}
+              />
 
-            <div className="bg-gradient-to-b from-gray-900 to-black rounded-lg border border-gray-800 shadow-xl hover:shadow-2xl transition-all duration-300 hover:border-gray-700">
-              <div className="p-4 border-b border-gray-800 flex items-center justify-between">
-                <h2 className="text-lg font-medium flex items-center gap-2">
-                  <FileText className="h-4 w-4" /> 
-                  Your Documents
-                </h2>
-                {documents.length > 0 && (
-                  <span className="text-sm bg-gray-800 px-2 py-1 rounded-md">
-                    {documents.length} {documents.length === 1 ? 'document' : 'documents'}
-                  </span>
-                )}
-              </div>
-              <div className="p-4">
-                {isLoading ? (
-                  <div className="py-8 flex justify-center">
-                    <div className="animate-spin h-6 w-6 border-2 border-primary rounded-full border-t-transparent"></div>
-                  </div>
-                ) : documents.length === 0 ? (
-                  <div className="text-center py-12 animate-slide-up">
-                    <div className="bg-gray-800/50 h-20 w-20 rounded-full flex items-center justify-center mx-auto mb-4 animate-pulse-slow">
-                      <CircleHelp className="h-10 w-10 text-gray-500" />
+              <div className="bg-gradient-to-b from-gray-900 to-black rounded-lg border border-gray-800 shadow-xl hover:shadow-2xl transition-all duration-300 hover:border-gray-700">
+                <div className="p-4 border-b border-gray-800 flex items-center justify-between">
+                  <h2 className="text-lg font-medium flex items-center gap-2">
+                    <FileText className="h-4 w-4" /> 
+                    Your Documents
+                  </h2>
+                  {documents.length > 0 && (
+                    <span className="text-sm bg-gray-800 px-2 py-1 rounded-md">
+                      {documents.length} {documents.length === 1 ? 'document' : 'documents'}
+                    </span>
+                  )}
+                </div>
+                <div className="p-4">
+                  {isLoading ? (
+                    <div className="py-8 flex justify-center">
+                      <div className="animate-spin h-6 w-6 border-2 border-primary rounded-full border-t-transparent"></div>
                     </div>
-                    <p className="text-lg text-gray-300 mb-2">No documents yet</p>
-                    <p className="text-muted-foreground max-w-sm mx-auto mb-6">
-                      Upload your first PDF document to start asking questions and get AI-powered answers.
-                    </p>
-                  </div>
-                ) : (
-                  <ul className="grid gap-3 animate-slide-up">
-                    {documents.map((doc, index) => (
-                      <li 
+                  ) : documents.length === 0 ? (
+                    <div className="text-center py-12 animate-slide-up">
+                      <div className="bg-gray-800/50 h-20 w-20 rounded-full flex items-center justify-center mx-auto mb-4 animate-pulse-slow">
+                        <CircleHelp className="h-10 w-10 text-gray-500" />
+                      </div>
+                      <p className="text-lg text-gray-300 mb-2">No documents yet</p>
+                      <p className="text-muted-foreground max-w-sm mx-auto mb-6">
+                        Upload your first PDF document to start asking questions and get AI-powered answers.
+                      </p>
+                    </div>
+                  ) : (
+                    <ul className="grid gap-3 animate-slide-up">
+                      {documents.map((doc, index) => (
+                        <li 
                         key={doc.id} 
                         className="group flex items-center justify-between p-3 rounded-md border border-gray-800 bg-gray-900/50 hover:bg-gray-800 hover:border-gray-700 transition-all duration-300"
                         style={{ animationDelay: `${index * 0.05}s` }}
@@ -220,7 +221,7 @@ export default function Dashboard() {
                         <div className="min-w-0 flex-1">
                           <div className="flex items-center gap-2">
                             <FileText className="h-4 w-4 text-gray-400 flex-shrink-0" />
-                            <p className="truncate font-medium text-sm">{doc.name}</p>
+                            <p className="truncate font-medium text-sm lg:max-w-[120px] xl:max-w-[180px] 2xl:max-w-full">{doc.name}</p>
                           </div>
                           <p className="text-xs text-muted-foreground mt-1">
                             {new Date(doc.created_at).toLocaleDateString()}
@@ -236,15 +237,17 @@ export default function Dashboard() {
                           <span className="sr-only">View Document</span>
                         </a>
                       </li>
-                    ))}
-                  </ul>
-                )}
+                      ))}
+                    </ul>
+                  )}
+                </div>
               </div>
             </div>
-          </div>
 
-          <div className="md:col-span-2 opacity-0 animate-fade-in" style={{ animationDelay: '0.2s' }}>
-            <ChatInterface userId={user?.id || ""} />
+            {/* Chat interface - full width on md, 2/3 width on lg+ */}
+            <div className="lg:col-span-2 mt-6 lg:mt-0 opacity-0 animate-fade-in" style={{ animationDelay: '0.2s' }}>
+              <ChatInterface userId={user?.id || ""} />
+            </div>
           </div>
         </div>
       </main>
