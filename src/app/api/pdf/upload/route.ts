@@ -40,8 +40,8 @@ export async function POST(request: Request) {
     
     // Create Supabase admin client with service role key (no auth required)
     const supabaseAdmin = createClient(
-      process.env.NEXT_PUBLIC_SUPABASE_URL!,
-      process.env.NEXT_PUBLIC_SUPABASE_ROLE_KEY!, 
+      process.env.SUPABASE_URL!,
+      process.env.SUPABASE_ROLE_KEY!, 
       { auth: { persistSession: false } }
     );
         

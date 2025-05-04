@@ -5,14 +5,14 @@ import { supabase } from "@/lib/supabase";
 import { createClient } from "@supabase/supabase-js";
 
 const openRouter = new OpenAI({
-  apiKey: process.env.NEXT_PUBLIC_OPENROUTER_API_KEY || "",
+  apiKey: process.env.OPENROUTER_API_KEY || "",
   baseURL: "https://openrouter.ai/api/v1",
 });
 
 // Admin client to check documents
 const supabaseAdmin = createClient(
-  process.env.NEXT_PUBLIC_SUPABASE_URL!,
-  process.env.NEXT_PUBLIC_SUPABASE_ROLE_KEY!,
+  process.env.SUPABASE_URL!,
+  process.env.SUPABASE_ROLE_KEY!,
   { auth: { persistSession: false } }
 );
 

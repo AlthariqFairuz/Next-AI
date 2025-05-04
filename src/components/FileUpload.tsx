@@ -29,8 +29,8 @@ export default function FileUpload({ userId, onUpload }: FileUploadProps) {
   
   // Use createBrowserClient to ensure we have the latest auth cookies
   const supabase = createBrowserClient(
-    process.env.NEXT_PUBLIC_SUPABASE_URL!,
-    process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
+    process.env.SUPABASE_URL!,
+    process.env.SUPABASE_ANON_KEY!
   );
 
   function handleModelSelect(modelId: string) {
@@ -86,7 +86,7 @@ export default function FileUpload({ userId, onUpload }: FileUploadProps) {
         throw new Error(`Upload failed: ${uploadError.message}`);
       }
       
-      const fileUrl = `${process.env.NEXT_PUBLIC_SUPABASE_URL}/storage/v1/object/public/pdfs/${userId}/${storageFileName}`;
+      const fileUrl = `${process.env.SUPABASE_URL}/storage/v1/object/public/pdfs/${userId}/${storageFileName}`;
 
 
       setProgress(40);
