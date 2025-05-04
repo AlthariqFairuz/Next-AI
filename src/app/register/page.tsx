@@ -8,6 +8,8 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Card, CardHeader, CardContent, CardFooter, CardTitle, CardDescription } from "@/components/ui/card";
 import { toast } from "sonner";
+import Navbar from "@/components/Navbar";
+import Footer from "@/components/Footer";
 
 export default function RegisterPage() {
   const [email, setEmail] = useState("");
@@ -46,11 +48,13 @@ export default function RegisterPage() {
   };
 
   return (
+    <>
+    <Navbar/>
     <div className="flex min-h-screen items-center justify-center bg-gray-50 px-4 py-12 sm:px-6 lg:px-8">
       <Card className="w-full max-w-md">
         <CardHeader className="text-center">
           <CardTitle className="text-2xl font-bold">Create an Account</CardTitle>
-          <CardDescription>Sign up for DeepSeek RAG</CardDescription>
+          <CardDescription>Sign up for NEXT AI</CardDescription>
         </CardHeader>
         
         <form onSubmit={handleRegister}>
@@ -121,5 +125,7 @@ export default function RegisterPage() {
         </form>
       </Card>
     </div>
+    <Footer/>
+    </>
   );
 }

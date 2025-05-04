@@ -53,28 +53,26 @@ export default function Home() {
 
   return (
     <div className="flex min-h-screen flex-col bg-background text-foreground">
-      {/* Navbar with auth integration */}
+      {/* Navbar */}
       <Navbar />
 
       <main className="flex-1">
-        {/* Hero section with gradient animation */}
+        {/* Hero section */}
         <section
           ref={heroRef}
           className="relative opacity-0 translate-y-6 transition-all duration-700 ease-out py-16 md:py-24 lg:py-32 overflow-hidden"
         >
           <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8 text-center relative z-10">
             <div className="mx-auto max-w-3xl">
-              <h1 className="text-3xl sm:text-4xl md:text-5xl lg:text-6xl font-bold mb-6 tracking-tight">
-                Chat with your
-                <br /> documents using{" "}
-                <span className="bg-clip-text text-transparent bg-gradient-to-r from-white to-gray-400 animate-gradient-x flex items-center justify-center gap-2">
-                  <span className="relative">
-                      <Link href="/" className="flex items-center gap-2">
-                        <span className="text-xl font-bold bg-clip-text text-transparent bg-gradient-to-r from-white to-gray-400">NEXT AI</span>
-                      </Link>
-                  </span>
-                </span>
-              </h1>
+            <h1 className="text-3xl sm:text-4xl md:text-5xl lg:text-6xl font-bold mb-6 tracking-tight">
+              Chat with your
+              <br /> documents using{" "}
+              <div className="flex justify-center items-center mt-4">
+              <span className="text-3xl md:text-5xl lg:text-6xl font-bold text-reveal-animation">
+                NEXT AI
+              </span>
+              </div>
+            </h1>
               <p className="text-base sm:text-lg md:text-xl text-muted-foreground mb-8 sm:mb-10 max-w-2xl mx-auto">
                 Upload your PDFs and get instant answers powered by various AI models. 
                 No more searching through hundreds of pages.
@@ -106,13 +104,13 @@ export default function Home() {
             </div>
           </div>
 
-          {/* Animated background - with reduced opacity for the checker pattern */}
+          {/* Animated background */}
           <div className="absolute inset-0 -z-10 overflow-hidden">
             {/* Gradient orbs */}
             <div className="absolute top-1/4 -right-20 w-64 h-64 rounded-full bg-gradient-to-r from-purple-900/30 to-blue-900/30 blur-3xl animate-float"></div>
             <div className="absolute -bottom-40 -left-40 w-96 h-96 rounded-full bg-gradient-to-r from-gray-900/20 to-gray-700/20 blur-3xl animate-pulse-slow"></div>
             
-            {/* Grid overlay for texture - reduced opacity */}
+            {/* Grid overlay for texture */}
             <div className="absolute inset-0 bg-[url('data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iNjAiIGhlaWdodD0iNjAiIHZpZXdCb3g9IjAgMCA2MCA2MCIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj48ZyBmaWxsPSJub25lIiBmaWxsLXJ1bGU9ImV2ZW5vZGQiPjxwYXRoIGZpbGw9IiMxMTEiIGQ9Ik0wIDBoNjB2NjBIMHoiLz48cGF0aCBkPSJNMzAgMzBoMzB2MzBIMzB6IiBzdHJva2Utb3BhY2l0eT0iLjAxIiBzdHJva2U9IiNmZmYiIGZpbGw9IiMwYzBjMGMiLz48cGF0aCBkPSJNMzAgMHYzMEgwVjB6IiBzdHJva2Utb3BhY2l0eT0iLjAxIiBzdHJva2U9IiNmZmYiIGZpbGw9IiMwYzBjMGMiLz48L2c+PC9zdmc+')] opacity-30"></div>
             
             {/* Vignette overlay */}
@@ -120,7 +118,7 @@ export default function Home() {
           </div>
         </section>
 
-        {/* Features section with stagger animation */}
+        {/* Features section */}
         <section
           id="features"
           ref={featuresRef}
@@ -197,7 +195,7 @@ export default function Home() {
             </div>
           </div>
 
-          {/* Background decoration with reduced opacity */}
+          {/* Background decoration */}
           <div className="absolute inset-0 -z-10">
             <div className="absolute inset-0 bg-gradient-to-b from-black via-gray-900 to-black"></div>
             <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-full h-full max-w-3xl mx-auto">
@@ -210,15 +208,27 @@ export default function Home() {
 
       <Footer/>
 
-      {/* Add global CSS */}
+      {/* Global CSS */}
       <style jsx global>{`
-        @keyframes gradient-x {
-          0%, 100% {
-            background-position: 0% 50%;
+
+        @keyframes text-reveal {
+          0% {
+            background-position: -200% 0;
+            opacity: 0.3;
           }
-          50% {
-            background-position: 100% 50%;
+          100% {
+            background-position: 0% 0;
+            opacity: 1;
           }
+        }
+
+        .text-reveal-animation {
+          background: linear-gradient(to right, white, black);
+          background-size: 200% 100%;
+          background-clip: text;
+          -webkit-background-clip: text;
+          color: transparent;
+          animation: text-reveal 2s ease-out forwards;
         }
         
         @keyframes pulse-slow {
@@ -250,11 +260,6 @@ export default function Home() {
             opacity: 1;
             transform: translateY(0);
           }
-        }
-        
-        .animate-gradient-x {
-          background-size: 200% 200%;
-          animation: gradient-x 8s ease infinite;
         }
         
         .animate-pulse-slow {

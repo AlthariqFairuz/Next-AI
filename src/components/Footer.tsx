@@ -10,12 +10,12 @@ const Footer  = () => {
                 </div>
                 <span className="text-lg font-bold bg-clip-text text-transparent bg-gradient-to-r from-white to-gray-400">NEXT AI</span>
                 </div>
-                <div className="flex flex-wrap justify-center gap-x-8 gap-y-4">
+                {/* <div className="flex flex-wrap justify-center gap-x-8 gap-y-4">
                 <a href="#features" className="text-sm text-muted-foreground hover:text-foreground transition-colors">Features</a>
                 <a href="#" className="text-sm text-muted-foreground hover:text-foreground transition-colors">Documentation</a>
                 <a href="#" className="text-sm text-muted-foreground hover:text-foreground transition-colors">Blog</a>
                 <a href="#" className="text-sm text-muted-foreground hover:text-foreground transition-colors">Support</a>
-                </div>
+                </div> */}
                 <p className="text-sm text-muted-foreground">
                 &copy; 2025 NEXT AI. All rights reserved.
                 </p>

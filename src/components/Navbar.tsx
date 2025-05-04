@@ -21,9 +21,9 @@ const Navbar = () => {
         
         <div className="flex flex-1 items-center justify-between md:justify-end space-x-2">
           <nav className="hidden md:flex space-x-8 mr-4">
-            <a href="#features" className="text-sm hover:text-gray-300 transition-colors">Features</a>
-            <a href="#about" className="text-sm hover:text-gray-300 transition-colors">About</a>
-            <a href="#contact" className="text-sm hover:text-gray-300 transition-colors">Contact</a>
+            <Link href="/" className="text-sm hover:text-gray-300 transition-colors">Home</Link>
+            {/* <a href="#about" className="text-sm hover:text-gray-300 transition-colors">About</a>
+            <a href="#contact" className="text-sm hover:text-gray-300 transition-colors">Contact</a> */}
           </nav>
           
           {/* Auth buttons */}
