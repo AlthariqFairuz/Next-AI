@@ -33,21 +33,17 @@ export async function middleware(req: NextRequest) {
   // Get the session
   const { data: { session } } = await supabase.auth.getSession();
   
-  // Get the current URL path
+  // current URL path
   const path = req.nextUrl.pathname;
   
-  // Rule 1: Dashboard requires authentication
   if (path.startsWith('/dashboard') && !session) {
     return NextResponse.redirect(new URL("/login", req.url));
   }
   
-  // Rule 2: Login/Register can only be accessed when not logged in
   if ((path === "/login" || path === "/register") && session) {
     return NextResponse.redirect(new URL("/dashboard", req.url));
   }
-  
-  // Rule 3: Home page can be accessed by anyone (no redirection needed)
-  
+
   return res;
 }
 
