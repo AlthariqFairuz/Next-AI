@@ -7,32 +7,20 @@ import { toast } from "sonner";
 import { Upload, Loader2, FileIcon, CheckCircle2, FilePlus } from "lucide-react";
 import { FileUploadProps } from '@/types/FileUploadProps';
 
-// const MODEL_OPTIONS = [
-//   { id: "deepseek/deepseek-r1:free", name: "DeepSeek-R1", description: "Ultimate Model for Complex Tasks" },
-//   { id: "meta-llama/llama-4-scout:free", name: "Llama 4 Scout", description: "Open source, highly capable" },
-//   { id: "mistralai/mistral-small-3.1-24b-instruct:free", name: "Mistral Small 3.1", description: "Perfect for Everyday Task" }
-// ];
-
-
 export default function FileUpload({ userId, onUpload }: FileUploadProps) {
   const [uploading, setUploading] = useState(false);
   const [fileName, setFileName] = useState('');
   const [progress, setProgress] = useState(0);
   const [dragActive, setDragActive] = useState(false);
   const [success, setSuccess] = useState(false);
-  // const [selectedModel, setSelectedModel] = useState(MODEL_OPTIONS[1].id);
   const fileInputRef = useRef<HTMLInputElement>(null);
   
-  // Use createBrowserClient to ensure we have the latest auth cookies
+  // use createBrowserClient to check auth cookies
   const supabase = createBrowserClient(
     process.env.SUPABASE_URL!,
     process.env.SUPABASE_ANON_KEY!
   );
 
-  // function handleModelSelect(modelId: string) {
-  //   setSelectedModel(modelId);
-  //   toast.success(`Model changed to ${MODEL_OPTIONS.find(m => m.id === modelId)?.name}`);
-  // }
   
   // Reset success state after animation completes
   useEffect(() => {
@@ -170,25 +158,6 @@ export default function FileUpload({ userId, onUpload }: FileUploadProps) {
       
       <CardContent className="p-4">
         <div className="space-y-4">
-
-        {/* Model selection */}
-        {/* <div className="grid grid-cols-2 gap-2">
-            {MODEL_OPTIONS.map((model) => (
-              <div
-                key={model.id}
-                className={`p-3 rounded-lg border cursor-pointer transition-all ${
-                  selectedModel === model.id 
-                    ? 'border-primary bg-primary/10' 
-                    : 'border-gray-700 hover:border-gray-600'
-                }`}
-                onClick={() => handleModelSelect(model.id)}
-              >
-                <div className="font-medium text-sm">{model.name}</div>
-                <div className="text-xs text-muted-foreground mt-1">{model.description}</div>
-              </div>
-            ))}
-        </div> */}
-
           <div 
             className={`border-2 border-dashed rounded-md p-6 text-center cursor-pointer transition-all duration-200 ${
               dragActive ? 'border-primary bg-primary/5 scale-105' : 'border-gray-700 hover:bg-gray-800/50'

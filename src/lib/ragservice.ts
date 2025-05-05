@@ -3,29 +3,29 @@ import { PDFLoader } from "@langchain/community/document_loaders/fs/pdf";
 import { RecursiveCharacterTextSplitter } from "langchain/text_splitter";
 import { Pinecone } from "@pinecone-database/pinecone";
 
-// Initialize Cohere embeddings
+// init  cohere embeddings
 const embeddings = new CohereEmbeddings({
   apiKey: process.env.COHERE_API_KEY,
   model: "embed-multilingual-v3.0"
 });
 
-// Initialize vector database
+// init vector database
 const pinecone = new Pinecone({
   apiKey: process.env.PINECONE_API_KEY!,
 });
 
 const index = pinecone.index('sample-movies');
 
-// Process PDF files
+// process pdf files
 export async function processPdf(file: string | Blob) {
   try {
     // Load and extract text from PDF
     const loader = new PDFLoader(file);
     const docs = await loader.load();
     
-    console.log(`Loaded ${docs.length} pages from PDF`);
-    
-    // Split into chunks
+    // console.log(`Loaded ${docs.length} pages from PDF`);
+  
+    // split text into chunks
     const splitter = new RecursiveCharacterTextSplitter({
       chunkSize: 1000,
       chunkOverlap: 200
@@ -41,7 +41,7 @@ export async function processPdf(file: string | Blob) {
   }
 }
 
-// Vector DB operations
+// store to pinecone vectordb
 export async function storeDocument(documentId: string, texts: string[]) {
   try {
     console.log(`Creating embeddings for ${texts.length} chunks`);
@@ -63,7 +63,7 @@ export async function storeDocument(documentId: string, texts: string[]) {
     
     console.log(`Storing ${vectors.length} vectors in Pinecone`);
     
-    // Batch inserts for better performance
+    // batch insert to increase performance
     const batchSize = 100;
     for (let i = 0; i < vectors.length; i += batchSize) {
       const batch = vectors.slice(i, i + batchSize);
@@ -85,7 +85,6 @@ export async function queryDocuments(query: string, userId: string, topK = 5) {
     
     console.log(`Querying Pinecone with userId: ${userId}`);
     
-    // No filter for now to troubleshoot retrieval issues
     const results = await index.query({
       vector: queryEmbedding,
       topK,
