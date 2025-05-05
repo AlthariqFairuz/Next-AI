@@ -56,7 +56,6 @@ A document retrieval augmented generation (RAG) system that allows users to uplo
    - documents
    - document_metadata
    - chat_history
-   - user_preferences
 
 5. Create a Pinecone index named 'sample-movies'
 
