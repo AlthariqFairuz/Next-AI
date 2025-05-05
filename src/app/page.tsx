@@ -80,7 +80,7 @@ export default function Home() {
               <div className="flex flex-col sm:flex-row gap-4 justify-center">
                 {user ? (
                   <Link href="/dashboard">
-                    <Button size="lg" className="w-full sm:w-auto group gap-2">
+                    <Button size="lg" className="w-full sm:w-auto group gap-2 cursor-pointer">
                       Go to Dashboard
                       <ArrowRight className="h-4 w-4 transition-transform group-hover:translate-x-1" />
                     </Button>
@@ -88,13 +88,13 @@ export default function Home() {
                 ) : (
                   <>
                     <Link href="/register">
-                      <Button size="lg" className="w-full sm:w-auto group gap-2">
+                      <Button size="lg" className="w-full sm:w-auto group gap-2 cursor-pointer">
                         Get started
                         <ArrowRight className="h-4 w-4 transition-transform group-hover:translate-x-1" />
                       </Button>
                     </Link>
                     <Link href="/login">
-                      <Button variant="outline" size="lg" className="w-full sm:w-auto">
+                      <Button variant="outline" size="lg" className="w-full sm:w-auto cursor-pointer">
                         Log in
                       </Button>
                     </Link>
@@ -179,14 +179,14 @@ export default function Home() {
               <div className="flex flex-col sm:flex-row gap-4 justify-center">
                 {user ? (
                   <Link href="/dashboard">
-                    <Button size="lg" className="w-full sm:w-auto group gap-2">
+                    <Button size="lg" className="w-full sm:w-auto group gap-2 cursor-pointer">
                       Go to Dashboard
                       <ArrowRight className="h-4 w-4 transition-transform group-hover:translate-x-1" />
                     </Button>
                   </Link>
                 ) : (
                   <Link href="/register">
-                    <Button size="lg" className="w-full sm:w-auto">
+                    <Button size="lg" className="w-full sm:w-auto cursor-pointer">
                       Get started for free
                     </Button>
                   </Link>

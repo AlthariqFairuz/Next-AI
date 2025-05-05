@@ -39,7 +39,7 @@ const Navbar = () => {
               <span className="flex items-center px-4 py-2 text-sm font-medium rounded-md bg-transparent hover:border-white transition-colors">{user.email}</span>
               <button
                 onClick={signOut}
-                className="flex items-center px-4 py-2 text-sm font-medium rounded-md bg-white text-black hover:bg-gray-200 transition-colors"
+                className="cursor-pointer flex items-center px-4 py-2 text-sm font-medium rounded-md bg-white text-black hover:bg-gray-200 transition-colors"
               >
                 <LogOut className="h-4 w-4 mr-2" />
                 Log out

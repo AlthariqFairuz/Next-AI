@@ -138,7 +138,7 @@ export default function LoginPage() {
               <CardFooter className="flex flex-col space-y-4 pt-4">
                 <Button
                   type="submit"
-                  className="w-full bg-gradient-to-r from-gray-200 to-gray-300 text-black hover:from-white hover:to-gray-200 transition-all"
+                  className="cursor-pointer w-full bg-gradient-to-r from-gray-200 to-gray-300 text-black hover:from-white hover:to-gray-200 transition-all"
                   disabled={isLoading}
                 >
                   {isLoading ? (

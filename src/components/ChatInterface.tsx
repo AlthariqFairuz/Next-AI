@@ -261,7 +261,7 @@ export default function ChatInterface({ userId }: { userId: string }) {
               size="sm"
               onClick={handleClearHistoryClick}
               disabled={isLoading || isLoadingHistory}
-              className="h-8 gap-1 text-xs hover:bg-gray-800/50 transition-all"
+              className="h-8 gap-1 text-xs hover:bg-gray-800/50 transition-all cursor-pointer"
             >
               <RotateCcw className="h-3 w-3" />
               Clear History
@@ -385,7 +385,7 @@ export default function ChatInterface({ userId }: { userId: string }) {
             type="submit"
             disabled={isLoading || isLoadingHistory || !input.trim() || !userId}
             size="icon"
-            className="shrink-0 bg-gradient-to-r from-gray-200 to-gray-300 text-black hover:from-white hover:to-gray-200 transition-all group"
+            className="cursor-pointer shrink-0 bg-gradient-to-r from-gray-200 to-gray-300 text-black hover:from-white hover:to-gray-200 transition-all group"
           >
             {isLoading ? (
               <div className="h-4 w-4 border-2 border-current border-t-transparent rounded-full animate-spin" />

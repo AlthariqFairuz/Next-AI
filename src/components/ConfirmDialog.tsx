@@ -14,7 +14,7 @@ function ConfirmDialog({ isOpen, onConfirm, onCancel, title, message }: ConfirmD
               <AlertCircle className="h-5 w-5 text-red-500" />
               {title}
             </h3>
-            <Button variant="ghost" size="icon" onClick={onCancel} className="h-8 w-8 rounded-full">
+            <Button variant="ghost" size="icon" onClick={onCancel} className="h-8 w-8 rounded-full cursor-pointer">
               <X className="h-4 w-4" />
             </Button>
           </div>
@@ -24,14 +24,14 @@ function ConfirmDialog({ isOpen, onConfirm, onCancel, title, message }: ConfirmD
               <Button 
                 variant="outline" 
                 onClick={onCancel}
-                className="border-gray-700 hover:bg-gray-800 hover:text-white transition-colors"
+                className="border-gray-700 hover:bg-gray-800 hover:text-white transition-colors cursor-pointer"
               >
                 Cancel
               </Button>
               <Button 
                 variant="destructive" 
                 onClick={onConfirm}
-                className="bg-red-600 hover:bg-red-700 text-white transition-colors"
+                className="bg-red-600 hover:bg-red-700 text-white transition-colors cursor-pointer"
               >
                 Clear History
               </Button>
