@@ -2,11 +2,13 @@ import { NextResponse } from "next/server";
 import { queryDocuments } from "@/lib/ragservice";
 import OpenAI from "openai";
 import { createClient } from "@supabase/supabase-js";
+import { Message } from "@/types/MessageProps";
 
 const openRouter = new OpenAI({
   apiKey: process.env.OPENROUTER_API_KEY || "",
   baseURL: "https://openrouter.ai/api/v1",
 });
+
 
 // Admin client to check documents
 const supabaseAdmin = createClient(
@@ -17,7 +19,7 @@ const supabaseAdmin = createClient(
 
 export async function POST(request: Request) {
   try {
-    const { message, userId, modelId, modelName } = await request.json();
+    const { message, userId, modelId, modelName, previousMessages  } = await request.json();
     
     if (!message || !userId) {
       return NextResponse.json(
@@ -42,12 +44,17 @@ export async function POST(request: Request) {
     const results = await queryDocuments(message, userId);
     console.log("Search results:", JSON.stringify(results, null, 2));
     
-    if (!results || !results.matches || results.matches.length === 0) {
-      return NextResponse.json({
-        response: "I couldn't find relevant information in your documents to answer that question.",
-        sources: []
-      });
-    }
+    // if (!results || !results.matches || results.matches.length === 0) {
+    //   return NextResponse.json({
+    //     response: "I couldn't find relevant information in your documents to answer that question.",
+    //     sources: []
+    //   });
+    // }
+
+    const chatHistory = previousMessages
+    .map((msg: Message) => `${msg.role === 'user' ? 'User' : 'Assistant'}: ${msg.message}`)
+    .join('\n');
+
     
     // Extract relevant context from the results
     const context = results.matches
@@ -65,10 +72,13 @@ export async function POST(request: Request) {
     
     const prompt = `
       You are an AI assistant for question-answering on documents. Your model is ${modelName}.
-      You have access to the following context from the user's documents. 
+      You have access to the following context from the user's documents chat history. 
       Answer the question based on the context below unless the user say otherwise. If you cannot find
       the answer in the context or there is no context provided, 
       give a warning to user that you are unsure and answer based on your knowledge or your assumption."
+
+      Previous conversation:
+      ${chatHistory}
 
       Context:
       ${context}

@@ -26,6 +26,8 @@ export default function ChatInterface({ userId }: { userId: string }) {
   
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const inputRef = useRef<HTMLInputElement>(null);
+
+  const previousMessages = messages.slice(-10); // prev 10 messages as additional context to model
   
   const supabase = createBrowserClient(
     process.env.SUPABASE_URL!,
@@ -178,6 +180,7 @@ export default function ChatInterface({ userId }: { userId: string }) {
           userId,
           modelId: selectedModel,
           modelName: MODEL_OPTIONS.find(m => m.id === selectedModel)?.name || 'Unknown',
+          previousMessages: previousMessages,
         }),
       });
       

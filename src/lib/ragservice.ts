@@ -14,7 +14,7 @@ const pinecone = new Pinecone({
   apiKey: process.env.PINECONE_API_KEY!,
 });
 
-const index = pinecone.index('sample-movies');
+const index = pinecone.index('next-ai');
 
 // process pdf files
 export async function processPdf(file: string | Blob) {
@@ -48,7 +48,7 @@ export async function storeDocument(documentId: string, texts: string[]) {
     
     const vectors = await Promise.all(
       texts.map(async (text: string, i: number) => {
-        const embedding = await embeddings.embedQuery(text);
+        const embedding = await embeddings.embedQuery(text); // embed using cohere
         return {
           id: `${documentId}-${i}`,
           values: embedding,
@@ -63,7 +63,7 @@ export async function storeDocument(documentId: string, texts: string[]) {
     
     console.log(`Storing ${vectors.length} vectors in Pinecone`);
     
-    // batch insert to increase performance
+    // batch insert to increase performance by reducing the number of api callls
     const batchSize = 100;
     for (let i = 0; i < vectors.length; i += batchSize) {
       const batch = vectors.slice(i, i + batchSize);
